@@ -81,6 +81,7 @@ export interface VideoProjectSpec {
   aspectRatio: '16:9' | '9:16' | '1:1' | '21:9';
   cameraMotion: 'Static' | 'Dolly Zoom In' | 'Pan Right' | 'Tilt Up' | 'Orbit 360' | 'FPV Drone Dive';
   style: 'Photorealistic' | 'Cyberpunk Neon' | 'Cinematic Film 35mm' | 'Anime Ethereal' | 'Retro VHS';
+  durationHours: number; // Up to 100 hours max
 }
 
 export interface VersionSnapshot {

@@ -18,7 +18,16 @@ import {
   Download,
   Share2,
   ShieldCheck,
+  Flame,
 } from 'lucide-react';
+import {
+  MAX_VIDEO_DURATION_HOURS,
+  DURATION_PRESETS,
+  clampVideoDuration,
+  formatTimecode,
+  formatDurationLabel,
+  calculateVideoComputeMetrics,
+} from '../utils/videoDurationUtils';
 
 interface SoraStudioTabProps {
   onMemeToVideoPrompt?: (promptText: string) => void;
@@ -34,6 +43,7 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
     aspectRatio: '16:9',
     cameraMotion: 'Dolly Zoom In',
     style: 'Photorealistic',
+    durationHours: 100, // 100 hours max duration
   });
 
   const [isPlaying, setIsPlaying] = useState(true);
@@ -41,8 +51,11 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
   const [renderProgress, setRenderProgress] = useState(0);
   const [currentStage, setCurrentStage] = useState('Idle');
   const [isEnhancing, setIsEnhancing] = useState(false);
-  const [currentTimecode, setCurrentTimecode] = useState(4.2);
-  const totalDuration = 10.0;
+  const [durationInputUnit, setDurationInputUnit] = useState<'hours' | 'minutes' | 'seconds'>('hours');
+
+  const totalDurationSec = (spec.durationHours || 100) * 3600;
+  const [currentTimecode, setCurrentTimecode] = useState(14400); // 4 hours in default preview
+  const computeMetrics = calculateVideoComputeMetrics(spec.durationHours || 100, spec.frameRate, spec.resolution);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
@@ -74,12 +87,15 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
     setIsRendering(true);
     setRenderProgress(0);
 
+    const totalFrames = Math.round(totalDurationSec * spec.frameRate);
+    const hoursStr = formatDurationLabel(spec.durationHours);
+
     const stages = [
-      { p: 15, msg: 'Pre-Flight: Prompt semantic embedding & safety scan...' },
-      { p: 40, msg: `Latent Diffusion: Generating ${spec.frameRate}fps neural frame tensors...` },
-      { p: 70, msg: `Super-Resolution: Neural upscaling to ${spec.resolution}...` },
-      { p: 90, msg: `Camera Motion: Interpolating ${spec.cameraMotion} vectors...` },
-      { p: 100, msg: 'Distributed CDN Encode: Ready for global low-latency stream' },
+      { p: 15, msg: `Pre-Flight: Prompt semantic vectorization & ${hoursStr} keyframe roadmap...` },
+      { p: 40, msg: `Distributed Diffusion: Partitioning ${totalFrames.toLocaleString()} frames across 4 GPU clusters...` },
+      { p: 70, msg: `Super-Resolution: Neural upscaling to ${spec.resolution} with persistent latent memory...` },
+      { p: 90, msg: `Camera Motion: Interpolating continuous ${spec.cameraMotion} trajectories without drift...` },
+      { p: 100, msg: `Distributed CDN Master: ${hoursStr} stream ready (100h Max Cap Engine)` },
     ];
 
     let currentIdx = 0;
@@ -175,7 +191,9 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
       }
 
       if (isPlaying) {
-        setCurrentTimecode((prev) => (prev >= totalDuration ? 0 : prev + 0.03));
+        // Advance time smoothly; loop back to 0 when reaching totalDurationSec
+        const stepSec = Math.max(0.1, totalDurationSec / 20000);
+        setCurrentTimecode((prev) => (prev >= totalDurationSec ? 0 : prev + stepSec));
       }
 
       animFrameRef.current = requestAnimationFrame(render);
@@ -199,25 +217,34 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
             <div>
               <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
                 <span>Sora Video Studio</span>
-                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white uppercase tracking-wider">
-                  Veo 3.1 Neural Engine
+                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500 via-indigo-500 to-amber-500 text-white uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                  <Flame className="w-3 h-3 text-amber-300" />
+                  Veo 3.1 • 100h Max
                 </span>
               </h3>
               <p className="text-xs text-slate-400">
-                Text-to-Video generation with professional multi-resolution, frame rate &amp; camera trajectory controls
+                Text-to-Video generation with professional multi-resolution, up to 100 hours max duration &amp; distributed GPU cluster rendering
               </p>
             </div>
           </div>
         </div>
 
-        {/* Global Edge CDN Low-Latency Badge */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-          <span className="text-slate-300 font-semibold">Edge CDN Latency:</span>
-          <span className="text-emerald-400 font-mono font-bold">11ms</span>
-          <span className="text-slate-600">|</span>
-          <ShieldCheck className="w-4 h-4 text-cyan-400" />
-          <span className="text-cyan-400 text-[11px] font-bold">E2E Encrypted</span>
+        {/* Global Edge CDN Low-Latency Badge & Max Duration Pill */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-purple-950/60 border border-purple-500/30 text-xs">
+            <Clock className="w-3.5 h-3.5 text-amber-400" />
+            <span className="text-purple-200 font-semibold">Max Duration:</span>
+            <span className="text-amber-300 font-mono font-bold">100 Hours</span>
+          </div>
+
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span className="text-slate-300 font-semibold">Edge CDN Latency:</span>
+            <span className="text-emerald-400 font-mono font-bold">11ms</span>
+            <span className="text-slate-600">|</span>
+            <ShieldCheck className="w-4 h-4 text-cyan-400" />
+            <span className="text-cyan-400 text-[11px] font-bold">E2E Encrypted</span>
+          </div>
         </div>
       </div>
 
@@ -234,18 +261,18 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
 
             {/* Overlays / Spec Tag */}
             <div className="absolute top-4 left-4 flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-lg bg-black/70 border border-purple-500/40 text-purple-300 text-xs font-mono font-bold flex items-center gap-1.5 backdrop-blur-md">
+              <span className="px-2.5 py-1 rounded-lg bg-black/75 border border-purple-500/40 text-purple-300 text-xs font-mono font-bold flex items-center gap-1.5 backdrop-blur-md">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                VEO 3.1 • {spec.resolution} • {spec.frameRate} FPS
+                VEO 3.1 • {spec.resolution} • {spec.frameRate} FPS • {formatDurationLabel(spec.durationHours)}
               </span>
-              <span className="px-2 py-1 rounded-lg bg-black/70 border border-slate-700 text-slate-300 text-xs font-mono backdrop-blur-md">
+              <span className="px-2 py-1 rounded-lg bg-black/75 border border-slate-700 text-slate-300 text-xs font-mono backdrop-blur-md">
                 {spec.aspectRatio}
               </span>
             </div>
 
             {/* Camera Motion Overlay Tag */}
             <div className="absolute top-4 right-4">
-              <span className="px-2.5 py-1 rounded-lg bg-black/70 border border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold backdrop-blur-md">
+              <span className="px-2.5 py-1 rounded-lg bg-black/75 border border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold backdrop-blur-md">
                 CAM: {spec.cameraMotion}
               </span>
             </div>
@@ -254,23 +281,93 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
             <button
               onClick={() => setIsPlaying(!isPlaying)}
               className="absolute inset-0 flex items-center justify-center group/btn"
+              title={isPlaying ? 'Pause preview' : 'Play continuous 100h preview'}
             >
               <div className="w-16 h-16 rounded-full bg-purple-600/80 group-hover/btn:bg-purple-500 border border-white/20 text-white flex items-center justify-center shadow-2xl backdrop-blur-md transition-all group-hover/btn:scale-110">
                 {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-1" />}
               </div>
             </button>
 
-            {/* Bottom Scrubber Overlay */}
-            <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black via-black/80 to-transparent flex flex-col gap-2">
-              <div className="flex items-center justify-between text-xs text-slate-300 font-mono">
-                <span>00:0{currentTimecode.toFixed(1)}</span>
-                <span className="text-slate-500">/ 00:10.0</span>
+            {/* Bottom Scrubber Overlay with 100-Hour Navigation */}
+            <div className="absolute bottom-0 inset-x-0 p-3 sm:p-4 bg-gradient-to-t from-black via-black/85 to-transparent flex flex-col gap-1.5">
+              <div className="flex items-center justify-between text-[11px] sm:text-xs text-slate-300 font-mono">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-cyan-400 font-bold">{formatTimecode(currentTimecode)}</span>
+                  <span className="text-slate-500">/</span>
+                  <span className="text-amber-300 font-bold">{formatTimecode(totalDurationSec)}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[10px]">
+                  <span className="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">
+                    {formatDurationLabel(spec.durationHours)}
+                  </span>
+                  {spec.durationHours >= 100 && (
+                    <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                      100H MAX
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="w-full bg-slate-800/80 h-1.5 rounded-full overflow-hidden">
+
+              {/* Clickable / Draggable Scrubber Bar */}
+              <div
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const clickX = e.clientX - rect.left;
+                  const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+                  setCurrentTimecode(ratio * totalDurationSec);
+                }}
+                className="w-full bg-slate-800/80 hover:bg-slate-700/80 h-2.5 rounded-full overflow-hidden cursor-pointer relative group/scrub transition-all"
+                title="Click anywhere to jump on the 100-hour timeline"
+              >
                 <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full"
-                  style={{ width: `${(currentTimecode / totalDuration) * 100}%` }}
+                  className="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-cyan-400 rounded-full"
+                  style={{ width: `${Math.min(100, (currentTimecode / totalDurationSec) * 100)}%` }}
                 />
+              </div>
+
+              {/* Quick Scrub Timeline Jump Controls */}
+              <div className="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setCurrentTimecode(0)}
+                    className="px-1.5 py-0.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700 rounded text-slate-300 hover:text-white transition-colors"
+                  >
+                    00:00:00
+                  </button>
+                  {totalDurationSec >= 7200 && (
+                    <>
+                      <button
+                        onClick={() => setCurrentTimecode((prev) => Math.max(0, prev - 3600))}
+                        className="px-1.5 py-0.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700 rounded text-slate-300 hover:text-white transition-colors"
+                        title="Rewind 1 hour"
+                      >
+                        -1 hr
+                      </button>
+                      <button
+                        onClick={() => setCurrentTimecode((prev) => Math.min(totalDurationSec, prev + 3600))}
+                        className="px-1.5 py-0.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700 rounded text-slate-300 hover:text-white transition-colors"
+                        title="Fast forward 1 hour"
+                      >
+                        +1 hr
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setCurrentTimecode(totalDurationSec / 2)}
+                    className="px-1.5 py-0.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700 rounded text-slate-300 hover:text-white transition-colors"
+                  >
+                    Midpoint (50%)
+                  </button>
+                  <button
+                    onClick={() => setCurrentTimecode(totalDurationSec)}
+                    className="px-1.5 py-0.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700 rounded text-slate-300 hover:text-white transition-colors"
+                  >
+                    End ({formatTimecode(totalDurationSec).slice(0, 5)})
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -437,6 +534,132 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
               </div>
             </div>
 
+            {/* AI Video Duration Control (Up to 100 Hours Max) */}
+            <div className="space-y-2.5 p-3.5 rounded-2xl bg-slate-950/90 border border-purple-500/40 shadow-inner">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-purple-400" />
+                  <span>AI Video Duration</span>
+                  <span className="px-1.5 py-0.5 rounded bg-gradient-to-r from-purple-500 to-amber-500 text-white text-[9px] font-extrabold shadow-sm">
+                    MAX 100 HOURS
+                  </span>
+                </label>
+                <div className="text-right">
+                  <span className="text-xs font-mono font-bold text-amber-300">
+                    {formatDurationLabel(spec.durationHours)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Quick Preset Buttons (including 100h MAX ULTRA) */}
+              <div className="grid grid-cols-4 gap-1.5">
+                {DURATION_PRESETS.map((preset) => {
+                  const isSelected = Math.abs(spec.durationHours - preset.hours) < 0.001;
+                  return (
+                    <button
+                      key={preset.id}
+                      onClick={() => {
+                        setSpec((prev) => ({ ...prev, durationHours: preset.hours }));
+                        setCurrentTimecode(Math.min(currentTimecode, preset.hours * 3600));
+                      }}
+                      className={`py-1.5 px-1 rounded-xl text-[11px] font-bold border transition-all relative flex flex-col items-center justify-center ${
+                        isSelected
+                          ? 'bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-600 border-amber-400/80 text-white shadow-md shadow-purple-500/20'
+                          : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                      }`}
+                      title={preset.description}
+                    >
+                      <span>{preset.label}</span>
+                      {preset.badge && (
+                        <span className="text-[8px] font-black text-amber-300 uppercase tracking-tight">
+                          {preset.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Range Slider for continuous adjustment up to 100 Hours */}
+              <div className="space-y-1 pt-1">
+                <div className="flex items-center justify-between text-[10px] text-slate-400">
+                  <span>1 sec</span>
+                  <span className="text-purple-300 font-mono font-semibold">
+                    Scale: 0 to 100 Hours Max
+                  </span>
+                  <span className="text-amber-400 font-bold">100h Cap</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.005"
+                  max="100"
+                  step={spec.durationHours <= 1 ? 0.01 : spec.durationHours <= 10 ? 0.1 : 0.5}
+                  value={spec.durationHours}
+                  onChange={(e) => {
+                    const val = clampVideoDuration(parseFloat(e.target.value));
+                    setSpec((prev) => ({ ...prev, durationHours: val }));
+                    setCurrentTimecode((prev) => Math.min(prev, val * 3600));
+                  }}
+                  className="w-full accent-amber-500 cursor-pointer h-2 bg-slate-900 rounded-lg appearance-none"
+                />
+              </div>
+
+              {/* Exact Input + Unit Selector */}
+              <div className="flex items-center gap-2 pt-1">
+                <div className="flex-1 flex items-center bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1 text-xs">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase mr-2">Exact:</span>
+                  <input
+                    type="number"
+                    min="0.001"
+                    max={durationInputUnit === 'hours' ? 100 : durationInputUnit === 'minutes' ? 6000 : 360000}
+                    step={durationInputUnit === 'hours' ? '0.1' : '1'}
+                    value={
+                      durationInputUnit === 'hours'
+                        ? Math.round(spec.durationHours * 100) / 100
+                        : durationInputUnit === 'minutes'
+                        ? Math.round(spec.durationHours * 60 * 10) / 10
+                        : Math.round(spec.durationHours * 3600)
+                    }
+                    onChange={(e) => {
+                      const raw = parseFloat(e.target.value) || 0;
+                      let calculatedHours = raw;
+                      if (durationInputUnit === 'minutes') calculatedHours = raw / 60;
+                      if (durationInputUnit === 'seconds') calculatedHours = raw / 3600;
+                      const clamped = clampVideoDuration(calculatedHours);
+                      setSpec((prev) => ({ ...prev, durationHours: clamped }));
+                      setCurrentTimecode((prev) => Math.min(prev, clamped * 3600));
+                    }}
+                    className="w-full bg-transparent text-white font-mono text-xs focus:outline-none"
+                  />
+                </div>
+                <select
+                  value={durationInputUnit}
+                  onChange={(e) => setDurationInputUnit(e.target.value as any)}
+                  className="bg-slate-900 border border-slate-800 rounded-xl px-2 py-1 text-xs text-slate-300 font-bold focus:outline-none"
+                >
+                  <option value="hours">Hours (Max 100h)</option>
+                  <option value="minutes">Minutes</option>
+                  <option value="seconds">Seconds</option>
+                </select>
+              </div>
+
+              {/* 100-Hour Compute Metrics HUD */}
+              <div className="mt-2 p-2.5 rounded-xl bg-slate-900/95 border border-slate-800 text-[10px] space-y-1.5">
+                <div className="flex items-center justify-between font-mono">
+                  <span className="text-slate-400">Total Neural Frames:</span>
+                  <span className="text-cyan-300 font-bold">{computeMetrics.totalFrames.toLocaleString()} frames</span>
+                </div>
+                <div className="flex items-center justify-between font-mono">
+                  <span className="text-slate-400">Cluster Workload:</span>
+                  <span className="text-emerald-400 font-bold">4 Nodes • {computeMetrics.hoursPerCluster}h/cluster</span>
+                </div>
+                <div className="flex items-center justify-between font-mono">
+                  <span className="text-slate-400">Est. Master Size:</span>
+                  <span className="text-amber-300 font-bold">~{computeMetrics.estimatedStorageGb} GB ({spec.resolution})</span>
+                </div>
+              </div>
+            </div>
+
             {/* Camera Motion & Visual Style */}
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -483,17 +706,17 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
             <button
               onClick={handleStartRender}
               disabled={isRendering || !spec.prompt.trim()}
-              className="w-full py-3.5 px-4 bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-extrabold text-sm rounded-2xl flex items-center justify-center gap-2 transition-all shadow-xl shadow-purple-500/25 active:scale-95 disabled:opacity-50"
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white font-extrabold text-sm rounded-2xl flex items-center justify-center gap-2 transition-all shadow-xl shadow-purple-500/25 active:scale-95 disabled:opacity-50"
             >
               {isRendering ? (
                 <>
                   <Activity className="w-5 h-5 animate-spin" />
-                  Synthesizing {spec.resolution} @ {spec.frameRate}fps...
+                  Synthesizing {formatDurationLabel(spec.durationHours)} ({spec.resolution} @ {spec.frameRate}fps)...
                 </>
               ) : (
                 <>
                   <Video className="w-5 h-5" />
-                  Generate Scene with Sora / Veo 3
+                  Generate {formatDurationLabel(spec.durationHours)} Scene with Sora / Veo 3
                 </>
               )}
             </button>
