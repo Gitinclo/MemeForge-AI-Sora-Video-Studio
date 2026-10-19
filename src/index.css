@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .font-impact {
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  }
+  .font-anton {
+    font-family: 'Anton', sans-serif;
+  }
+  .font-bebas {
+    font-family: 'Bebas Neue', cursive, sans-serif;
+  }
+  .font-montserrat {
+    font-family: 'Montserrat', sans-serif;
+  }
+  .font-marker {
+    font-family: 'Permanent Marker', cursive, sans-serif;
+  }
+  .font-orbitron {
+    font-family: 'Orbitron', monospace, sans-serif;
+  }
+  .font-oswald {
+    font-family: 'Oswald', sans-serif;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090d16;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}

@@ -1,0 +1,33 @@
+{
+  "id": "/",
+  "name": "MemeForge AI Studio",
+  "short_name": "MemeForge",
+  "description": "AI-powered meme generator with Magic Caption vision analysis, live font/color editor, trending templates, and Sora cinematic video studio.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#090d16",
+  "background_color": "#090d16",
+  "categories": ["entertainment", "photo", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

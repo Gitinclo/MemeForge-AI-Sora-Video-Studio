@@ -1,0 +1,17 @@
+{
+  "appId": "com.memeforge.studio",
+  "appName": "MemeForge AI Studio",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "android": {
+    "buildOptions": {
+      "keystorePath": "my-upload-key.jks",
+      "keystoreAlias": "upload",
+      "releaseType": "AAB"
+    }
+  }
+}

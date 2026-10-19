@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#090d16"/>
+      <stop offset="100%" stop-color="#1e1035"/>
+    </linearGradient>
+    <linearGradient id="flame" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="50%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="cyanGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+  <!-- Background with rounded squircles -->
+  <rect width="512" height="512" rx="110" fill="url(#bg)"/>
+  <rect x="8" y="8" width="496" height="496" rx="102" fill="none" stroke="#334155" stroke-width="4" opacity="0.6"/>
+  
+  <!-- Outer glowing rings -->
+  <circle cx="256" cy="256" r="190" fill="none" stroke="url(#cyanGlow)" stroke-width="4" opacity="0.25"/>
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="8 8" opacity="0.4"/>
+  
+  <!-- Stylized Flame & Film Magic icon -->
+  <path d="M 256 90 C 270 150 320 180 340 240 C 365 310 320 380 256 410 C 190 380 145 310 170 240 C 185 190 220 150 256 90 Z" fill="url(#flame)"/>
+  <!-- Inner core flame -->
+  <path d="M 256 220 C 270 260 290 280 290 320 C 290 360 270 385 256 390 C 242 385 222 360 222 320 C 222 280 242 260 256 220 Z" fill="#fef08a"/>
+  
+  <!-- Magic sparkle stars -->
+  <polygon points="380,140 388,158 406,166 388,174 380,192 372,174 354,166 372,158" fill="#38bdf8"/>
+  <polygon points="120,330 126,344 140,350 126,356 120,370 114,356 100,350 114,344" fill="#facc15"/>
+  <polygon points="390,340 394,350 404,354 394,358 390,368 386,358 376,354 386,350" fill="#a855f7"/>
+
+  <!-- Lower text banner badge -->
+  <rect x="136" y="420" width="240" height="42" rx="21" fill="#0f172a" stroke="#a855f7" stroke-width="3"/>
+  <text x="256" y="447" font-family="Impact, sans-serif" font-weight="900" font-size="20" fill="#f8fafc" text-anchor="middle" letter-spacing="3">MEMEFORGE</text>
+</svg>
