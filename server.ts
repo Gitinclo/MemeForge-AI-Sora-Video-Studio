@@ -35,9 +35,11 @@ interface MagicCaptionRequest {
   topic?: string;
 }
 
-// 1. Magic Caption Endpoint: Analyzes image context & returns 5 funny, relevant captions
 app.post('/api/magic-captions', async (req: Request, res: Response) => {
   const { imageBase64, templateName, tone = 'sarcastic', topic = '' } = req.body as MagicCaptionRequest;
+  const safeTone = typeof tone === 'string' ? tone.slice(0, 50).toLowerCase().trim() : 'sarcastic';
+  const safeTopic = typeof topic === 'string' ? topic.slice(0, 200).trim() : '';
+  const safeTemplate = typeof templateName === 'string' ? templateName.slice(0, 100).trim() : '';
 
   // Curated high quality contextual backups in case API key is missing or rate limited
   const getFallbackCaptions = () => {
@@ -279,12 +281,16 @@ app.post('/api/chat-director', async (req: Request, res: Response) => {
   }
 });
 
-// 4. Low-latency Prompt Expander (gemini-3.1-flash-lite)
 app.post('/api/expand-prompt', async (req: Request, res: Response) => {
   const { prompt } = req.body;
+  const safePrompt = typeof prompt === 'string' ? prompt.slice(0, 500).trim() : '';
+  if (!safePrompt) {
+    return res.status(400).json({ error: 'Prompt is required' });
+  }
+
   if (!hasApiKey) {
     return res.json({
-      expanded: `${prompt}, dramatic cinematic lighting, photorealistic 8K, 35mm anamorphic lens flare, award-winning cinematography, ultra-detailed textures`,
+      expanded: `${safePrompt}, dramatic cinematic lighting, photorealistic 8K, 35mm anamorphic lens flare, award-winning cinematography, ultra-detailed textures`,
     });
   }
 

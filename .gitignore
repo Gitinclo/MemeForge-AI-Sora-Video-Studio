@@ -6,3 +6,9 @@ coverage/
 *.log
 .env*
 !.env.example
+*.keystore
+*.jks
+*.key
+*.pem
+.playwright-cli/
+.cache/

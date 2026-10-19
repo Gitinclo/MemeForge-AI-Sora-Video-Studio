@@ -1,14 +1,14 @@
 {
-  "name": "react-example",
+  "name": "memeforge-ai-sora-video-studio",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build",
     "preview": "vite preview",
     "start": "tsx server.ts",
-    "clean": "rm -rf dist server.js",
+    "clean": "node -e \"const fs=require('fs');['dist','server.js'].forEach(p=>{try{fs.rmSync(p,{recursive:true,force:true})}catch(e){}})\"",
     "lint": "tsc --noEmit",
     "test": "tsx --test src/utils/memeAudioEngine.test.ts src/data/memeStylePresets.test.ts src/utils/videoDurationUtils.test.ts"
   },
@@ -31,7 +31,7 @@
     "autoprefixer": "^10.4.21",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.21.0",
-    "typescript": "^7.0.2",
+    "typescript": "^5.8.2",
     "@types/express": "^4.17.21"
   }
 }
