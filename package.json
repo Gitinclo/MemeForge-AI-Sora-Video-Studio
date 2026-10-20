@@ -21,8 +21,10 @@
     "react-dom": "^19.0.1",
     "vite": "^8.3.0",
     "express": "^4.21.2",
-    "dotenv": "^17.2.3",
-    "motion": "^12.23.24"
+    "dotenv": "^17.2.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
