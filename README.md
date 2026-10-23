@@ -252,5 +252,15 @@ All Gemini model operations are handled server-side via Express routes:
 
 ---
 
+## ⚖️ Legal & Governance Documents
+
+- **[Privacy Policy (PRIVACY.md)](PRIVACY.md)**: Transparent disclosure of local client-side processing, ephemeral AI inference, and compliance with GDPR, CCPA, and Indian DPDPA.
+- **[Terms & Conditions (TERMS.md)](TERMS.md)**: Rules of use, commercial licensing rights, subscription billing terms (Rs. 999/mo & Rs. 99,999/mo), user content ownership, and liability limitations.
+- **[Security Policy (SECURITY.md)](SECURITY.md)**: Private vulnerability disclosure reporting procedures and API/keystore safeguarding policies.
+- **[Contributing Guidelines (CONTRIBUTING.md)](CONTRIBUTING.md)**: Developer workflow, branching conventions, and test execution standards.
+- **[Code of Conduct (CODE_OF_CONDUCT.md)](CODE_OF_CONDUCT.md)**: Contributor Covenant v2.1 community standards.
+
+---
+
 ## 📄 License
 Apache-2.0. Built with Google GenAI SDK and modern web standards.

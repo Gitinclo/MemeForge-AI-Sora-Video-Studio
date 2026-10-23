@@ -12,6 +12,7 @@ import { MarketplaceCheckoutModal } from './components/MarketplaceCheckoutModal'
 import { SubscriptionModal } from './components/SubscriptionModal';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { CinemaVfxEditorTab } from './components/CinemaVfxEditorTab';
+import { LegalDocsModal } from './components/LegalDocsModal';
 import { MEME_TEMPLATES } from './data/memeTemplates';
 import { UserSubscription } from './types/subscription';
 import {
@@ -67,6 +68,7 @@ export default function App() {
   const [isAndroidModalOpen, setIsAndroidModalOpen] = useState(false);
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
   const [subscriptionModalCategory, setSubscriptionModalCategory] = useState<'individual' | 'company'>('individual');
+  const [legalDocModal, setLegalDocModal] = useState<'terms' | 'privacy' | null>(null);
 
   // User Subscription State (persisted in localStorage, default Free)
   const [subscription, setSubscription] = useState<UserSubscription>(() => {
@@ -1292,14 +1294,39 @@ export default function App() {
         }}
       />
 
+      {/* Terms & Privacy Policy Legal Modal */}
+      <LegalDocsModal
+        isOpen={legalDocModal !== null}
+        onClose={() => setLegalDocModal(null)}
+        initialDoc={legalDocModal || 'terms'}
+      />
+
       {/* Footer info bar */}
       <footer className="mt-auto border-t border-slate-900 bg-slate-950 px-4 py-3 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-400" />
           <span>MemeForge AI Studio • 2026 Edition</span>
         </div>
-        <div className="text-[11px] text-slate-500">
-          Paste any image with <kbd className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300 font-mono">Ctrl+V</kbd> • Click &amp; drag text to reposition
+        <div className="flex flex-wrap items-center justify-center gap-3 text-[11px] text-slate-500">
+          <span className="hidden md:inline">
+            Paste image with <kbd className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300 font-mono">Ctrl+V</kbd>
+          </span>
+          <span className="hidden md:inline text-slate-700">•</span>
+          <button
+            type="button"
+            onClick={() => setLegalDocModal('terms')}
+            className="hover:text-amber-300 underline underline-offset-2 transition-colors cursor-pointer"
+          >
+            Terms &amp; Conditions
+          </button>
+          <span className="text-slate-700">•</span>
+          <button
+            type="button"
+            onClick={() => setLegalDocModal('privacy')}
+            className="hover:text-cyan-300 underline underline-offset-2 transition-colors cursor-pointer"
+          >
+            Privacy Policy
+          </button>
         </div>
       </footer>
     </div>
