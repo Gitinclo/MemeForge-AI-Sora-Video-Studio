@@ -15,19 +15,46 @@ import {
   ExternalLink,
   Plus,
   Key,
+  Building2,
+  Crown,
+  AlertTriangle,
+  Zap,
+  ShieldAlert,
+  FileText,
+  X,
+  Sparkles,
+  ArrowRight,
 } from 'lucide-react';
+import { UserSubscription } from '../types/subscription';
+import {
+  getPlanLimits,
+  canAccessTeamMembers,
+  COMPANY_TEAM_MONTHLY_PRICE_INR,
+} from '../utils/subscriptionUtils';
 
 interface TeamWorkspaceTabProps {
   versionHistory: VersionSnapshot[];
   onRollback: (snapshot: VersionSnapshot) => void;
+  subscription?: UserSubscription;
+  onOpenSubscriptionModal?: (category?: 'individual' | 'company') => void;
 }
 
 export const TeamWorkspaceTab: React.FC<TeamWorkspaceTabProps> = ({
   versionHistory,
   onRollback,
+  subscription,
+  onOpenSubscriptionModal,
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'versions' | 'members' | 'assets'>('versions');
   const [currentBranch, setCurrentBranch] = useState('main-cut');
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [inviteName, setInviteName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<'Director' | 'VFX Artist' | 'Editor' | 'Sound Designer' | 'Reviewer'>('Editor');
+  const [inviteSuccessMessage, setInviteSuccessMessage] = useState('');
+
+  const limits = getPlanLimits(subscription);
+  const isCompanyEnterprise = subscription?.isActive && subscription?.plan === 'company_team';
 
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
     {
@@ -101,8 +128,113 @@ export const TeamWorkspaceTab: React.FC<TeamWorkspaceTabProps> = ({
     },
   ];
 
+  const handleAddMember = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inviteName.trim() || !inviteEmail.trim()) return;
+
+    if (!canAccessTeamMembers(teamMembers.length + 1, subscription)) {
+      return;
+    }
+
+    const newMember: TeamMember = {
+      id: `m-${Date.now()}`,
+      name: inviteName.trim(),
+      email: inviteEmail.trim(),
+      role: inviteRole,
+      avatarColor: ['bg-amber-500', 'bg-purple-500', 'bg-cyan-500', 'bg-emerald-500', 'bg-pink-500'][
+        teamMembers.length % 5
+      ],
+      isOnline: true,
+      activity: 'Just joined workspace',
+    };
+
+    setTeamMembers([...teamMembers, newMember]);
+    setInviteSuccessMessage(`Invitation sent to ${inviteEmail.trim()} with role ${inviteRole}`);
+    setInviteName('');
+    setInviteEmail('');
+    setTimeout(() => setInviteSuccessMessage(''), 4000);
+    setIsInviteModalOpen(false);
+  };
+
   return (
     <div className="space-y-6">
+      {/* Enterprise Plan Banner (₹99,999/mo) or Upsell */}
+      {isCompanyEnterprise ? (
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-indigo-950/80 via-slate-900 to-purple-950/80 border border-cyan-500/40 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="p-3 rounded-2xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+              <Building2 className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-base font-black text-white">Team / Company Enterprise License Active</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[10px] font-black uppercase">
+                  50 Seats • Rs. 99,999 / mo
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-1">
+                {subscription?.companyName ? <strong className="text-white">{subscription.companyName} • </strong> : ''}
+                Dedicated 8-Node GPU Cluster • Unlimited 100-Hour 4K 120fps Renders • 18% GST Input Credit Active
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono font-bold text-cyan-300">
+              Seats: {teamMembers.length} / {limits.teamWorkspaceSeats}
+            </span>
+            <button
+              onClick={() => onOpenSubscriptionModal?.('company')}
+              className="px-3.5 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 text-cyan-200 text-xs font-bold transition-colors"
+            >
+              License Details
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-indigo-950/90 via-purple-950/70 to-slate-900 border border-cyan-500/40 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="p-3 rounded-2xl bg-gradient-to-tr from-cyan-500/20 via-indigo-500/20 to-purple-500/20 text-cyan-300 border border-cyan-500/40 shrink-0">
+              <Building2 className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-base font-black text-white">Team / Company Subscription for Multiple People</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[10px] font-black uppercase">
+                  Rs. 99,999 / mo
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-1">
+                Collaborate with 50 team members, dedicated 8-node GPU cluster with 0 queue wait, unlimited 100-hour video exports, and B2B GST tax invoice.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => onOpenSubscriptionModal?.('company')}
+            className="px-4 py-2.5 bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-600 hover:opacity-95 text-white text-xs font-black rounded-xl shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 shrink-0 transition-transform active:scale-95"
+          >
+            <Building2 className="w-4 h-4" />
+            <span>Upgrade Team (₹99,999/mo)</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Security Guard Callout: Play Store Direct Publishing Disabled */}
+      <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-3">
+        <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+        <div className="text-xs text-amber-200/90 leading-relaxed">
+          <strong>Security Protection:</strong> Direct automated publishing to the Google Play Store is disabled across all studio tiers to prevent credential exploitation and developer account abuse. All mobile packages are compiled strictly for offline sideload testing and internal enterprise signing.
+        </div>
+      </div>
+
+      {/* Success Notification */}
+      {inviteSuccessMessage && (
+        <div className="p-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <span>{inviteSuccessMessage}</span>
+        </div>
+      )}
+
       {/* Workspace Top Bar */}
       <div className="p-4 sm:p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -111,12 +243,14 @@ export const TeamWorkspaceTab: React.FC<TeamWorkspaceTabProps> = ({
               <Users className="w-5 h-5" />
             </span>
             <div>
-              <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-                <span>Team Collaborative Hub</span>
-                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                <h3 className="text-lg font-bold text-white tracking-tight">
+                  Team Collaborative Hub
+                </h3>
+                <span className="self-start text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                   Branch: {currentBranch}
                 </span>
-              </h3>
+              </div>
               <p className="text-xs text-slate-400">
                 Real-time version snapshots, granular role permissions, and encrypted low-latency cloud storage
               </p>
@@ -240,10 +374,22 @@ export const TeamWorkspaceTab: React.FC<TeamWorkspaceTabProps> = ({
                 Manage roles, live edit permissions, and rendering quota allocations
               </p>
             </div>
-            <button className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors">
-              <Plus className="w-3.5 h-3.5" />
-              Invite Member
-            </button>
+            <div className="flex items-center gap-3">
+              <span className={`text-xs font-mono font-bold px-2.5 py-1 rounded-xl border ${
+                teamMembers.length > limits.teamWorkspaceSeats
+                  ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                  : 'bg-slate-950 text-slate-300 border-slate-800'
+              }`}>
+                Seats: {teamMembers.length} / {limits.teamWorkspaceSeats}
+              </span>
+              <button
+                onClick={() => setIsInviteModalOpen(true)}
+                className="px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Invite Member
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -338,6 +484,155 @@ export const TeamWorkspaceTab: React.FC<TeamWorkspaceTabProps> = ({
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Invite Member Modal */}
+      {isInviteModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
+                  <Users className="w-5 h-5" />
+                </span>
+                <div>
+                  <h4 className="text-base font-bold text-white">Invite Team Member</h4>
+                  <p className="text-xs text-slate-400">
+                    Add collaborators with specific studio permissions
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsInviteModalOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Seat capacity check */}
+            {teamMembers.length >= limits.teamWorkspaceSeats ? (
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2">
+                  <div className="flex items-center gap-2 text-amber-300 font-bold text-sm">
+                    <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+                    <span>Workspace Seat Limit Reached ({teamMembers.length} / {limits.teamWorkspaceSeats})</span>
+                  </div>
+                  <p className="text-xs text-amber-200/80 leading-relaxed">
+                    Your current plan (<strong>{limits.name}</strong>) allows up to {limits.teamWorkspaceSeats} seat{limits.teamWorkspaceSeats > 1 ? 's' : ''}. To invite multiple people and entire teams, upgrade to the <strong>Team / Company Subscription (₹99,999 / month)</strong> which provides <strong>50 team seats</strong>, dedicated 8-node GPU clusters, and custom RBAC permissions.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-400">Team / Company Enterprise:</span>
+                    <span className="font-black text-cyan-300">₹99,999 / month</span>
+                  </div>
+                  <div className="text-[11px] text-slate-400 space-y-1">
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>50 Team seats with Director, VFX Artist &amp; Reviewer roles</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Dedicated 8-Node GPU Cluster with instant queue priority</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>18% GST Input Tax Credit B2B tax invoice</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setIsInviteModalOpen(false);
+                      onOpenSubscriptionModal?.('company');
+                    }}
+                    className="flex-1 py-3 px-4 bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-600 hover:opacity-95 text-white font-black text-xs rounded-xl shadow-lg flex items-center justify-center gap-2"
+                  >
+                    <Building2 className="w-4 h-4" />
+                    <span>Upgrade to Team Plan (₹99,999/mo)</span>
+                  </button>
+                  <button
+                    onClick={() => setIsInviteModalOpen(false)}
+                    className="py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleAddMember} className="space-y-4">
+                <div>
+                  <label className="text-[11px] font-bold text-slate-300 block mb-1">
+                    Member Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={inviteName}
+                    onChange={(e) => setInviteName(e.target.value)}
+                    placeholder="e.g. Rahul Sharma"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-300 block mb-1">
+                    Work Email Address
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="rahul@company.com"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-300 block mb-1">
+                    Role &amp; Permissions
+                  </label>
+                  <select
+                    value={inviteRole}
+                    onChange={(e) => setInviteRole(e.target.value as any)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-cyan-400"
+                  >
+                    <option value="Director">Director (Full pipeline &amp; AI prompt approvals)</option>
+                    <option value="VFX Artist">VFX Artist (Render queue &amp; shader settings)</option>
+                    <option value="Editor">Editor (Canvas layers &amp; timeline edits)</option>
+                    <option value="Sound Designer">Sound Designer (Audio synthesis &amp; stems)</option>
+                    <option value="Reviewer">Reviewer (View &amp; comment only)</option>
+                  </select>
+                </div>
+
+                <div className="pt-2 flex items-center justify-between text-xs text-slate-400 border-t border-slate-800">
+                  <span>Seats remaining: {limits.teamWorkspaceSeats - teamMembers.length}</span>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsInviteModalOpen(false)}
+                      className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold flex items-center gap-1.5 shadow-md"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Add to Workspace
+                    </button>
+                  </div>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

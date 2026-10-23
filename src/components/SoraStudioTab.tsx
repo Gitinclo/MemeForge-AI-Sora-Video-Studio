@@ -19,6 +19,8 @@ import {
   Share2,
   ShieldCheck,
   Flame,
+  Crown,
+  Lock,
 } from 'lucide-react';
 import {
   MAX_VIDEO_DURATION_HOURS,
@@ -28,12 +30,26 @@ import {
   formatDurationLabel,
   calculateVideoComputeMetrics,
 } from '../utils/videoDurationUtils';
+import { UserSubscription } from '../types/subscription';
+import {
+  canAccessVideoDuration,
+  canAccessResolution,
+  canAccessFrameRate,
+} from '../utils/subscriptionUtils';
 
 interface SoraStudioTabProps {
   onMemeToVideoPrompt?: (promptText: string) => void;
+  subscription?: UserSubscription;
+  onOpenSubscriptionModal?: () => void;
+  onOpenCinemaVfx?: () => void;
 }
 
-export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
+export const SoraStudioTab: React.FC<SoraStudioTabProps> = ({
+  onMemeToVideoPrompt,
+  subscription,
+  onOpenSubscriptionModal,
+  onOpenCinemaVfx,
+}) => {
   const [spec, setSpec] = useState<VideoProjectSpec>({
     title: 'Neon Odyssey: Hyper-Reality',
     prompt: 'A cyberpunk courier gliding on an anti-gravity hoverboard through rain-slicked Tokyo skyscrapers, neon reflections, anamorphic 35mm lens flare, 4K detail',
@@ -60,6 +76,12 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
 
+  const isProUser = subscription?.isActive && subscription.plan === 'india_pro';
+  const hasDurationAccess = canAccessVideoDuration(spec.durationHours, subscription);
+  const hasResolutionAccess = canAccessResolution(spec.resolution, subscription);
+  const hasFpsAccess = canAccessFrameRate(spec.frameRate, subscription);
+  const isSpecAllowed = hasDurationAccess && hasResolutionAccess && hasFpsAccess;
+
   // Fast Prompt Enhancer with Gemini Flash-Lite
   const handleEnhancePrompt = async () => {
     if (!spec.prompt) return;
@@ -84,6 +106,10 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
   // Video Generation Pipeline Trigger
   const handleStartRender = () => {
     if (isRendering) return;
+    if (!isSpecAllowed) {
+      onOpenSubscriptionModal?.();
+      return;
+    }
     setIsRendering(true);
     setRenderProgress(0);
 
@@ -467,17 +493,29 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
               <div className="grid grid-cols-3 gap-2">
                 {(['720p HD', '1080p FHD', '4K Ultra'] as const).map((res) => {
                   const isSel = spec.resolution === res;
+                  const isProRes = res !== '720p HD';
+                  const isAllowed = canAccessResolution(res, subscription);
                   return (
                     <button
                       key={res}
-                      onClick={() => setSpec({ ...spec, resolution: res })}
-                      className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all ${
+                      onClick={() => {
+                        setSpec({ ...spec, resolution: res });
+                        if (!isAllowed) onOpenSubscriptionModal?.();
+                      }}
+                      className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all relative flex flex-col items-center justify-center ${
                         isSel
                           ? 'bg-purple-500/20 border-purple-500 text-purple-300 shadow-md shadow-purple-500/10'
                           : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
                       }`}
                     >
-                      {res}
+                      <span className="flex items-center gap-1">
+                        <span>{res}</span>
+                        {isProRes && !isProUser && (
+                          <span className="text-[8px] font-black px-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                            PRO
+                          </span>
+                        )}
+                      </span>
                     </button>
                   );
                 })}
@@ -492,20 +530,59 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
               <div className="grid grid-cols-4 gap-2">
                 {([24, 30, 60, 120] as const).map((fps) => {
                   const isSel = spec.frameRate === fps;
+                  const isProFps = fps > 30;
+                  const isAllowed = canAccessFrameRate(fps, subscription);
                   return (
                     <button
                       key={fps}
-                      onClick={() => setSpec({ ...spec, frameRate: fps })}
-                      className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                      onClick={() => {
+                        setSpec({ ...spec, frameRate: fps });
+                        if (!isAllowed) onOpenSubscriptionModal?.();
+                      }}
+                      className={`py-2 rounded-xl text-xs font-bold border transition-all relative flex items-center justify-center gap-1 ${
                         isSel
                           ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300 shadow-md shadow-cyan-500/10'
                           : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
                       }`}
                     >
-                      {fps} fps
+                      <span>{fps} fps</span>
+                      {isProFps && !isProUser && (
+                        <span className="text-[8px] font-black px-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                          PRO
+                        </span>
+                      )}
                     </button>
                   );
                 })}
+              </div>
+
+              {/* Pro Cinema VFX 32K & 1000 FPS Mode CTA */}
+              <div className="p-3 rounded-2xl bg-gradient-to-r from-cyan-950/60 via-slate-900 to-indigo-950/60 border border-cyan-500/30 flex items-center justify-between gap-3 mt-2">
+                <div className="flex items-center gap-2.5">
+                  <span className="p-1.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                    <Sparkles className="w-4 h-4" />
+                  </span>
+                  <div>
+                    <h5 className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <span>Cinema VFX Suite</span>
+                      <span className="px-1.5 py-0.2 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[9px] font-mono">
+                        32K (32000×32000) • 1000 FPS
+                      </span>
+                    </h5>
+                    <p className="text-[10px] text-slate-400">
+                      Need 32-bit float color, ACES 2.0, 192 kHz Fairlight audio &amp; DaVinci 3D LUTs?
+                    </p>
+                  </div>
+                </div>
+                {onOpenCinemaVfx && (
+                  <button
+                    type="button"
+                    onClick={onOpenCinemaVfx}
+                    className="px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-black text-xs rounded-xl shadow-md shrink-0 transition-transform active:scale-95"
+                  >
+                    Open 32K VFX Studio
+                  </button>
+                )}
               </div>
             </div>
 
@@ -555,12 +632,14 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
               <div className="grid grid-cols-4 gap-1.5">
                 {DURATION_PRESETS.map((preset) => {
                   const isSelected = Math.abs(spec.durationHours - preset.hours) < 0.001;
+                  const isPresetAllowed = canAccessVideoDuration(preset.hours, subscription);
                   return (
                     <button
                       key={preset.id}
                       onClick={() => {
                         setSpec((prev) => ({ ...prev, durationHours: preset.hours }));
                         setCurrentTimecode(Math.min(currentTimecode, preset.hours * 3600));
+                        if (!isPresetAllowed) onOpenSubscriptionModal?.();
                       }}
                       className={`py-1.5 px-1 rounded-xl text-[11px] font-bold border transition-all relative flex flex-col items-center justify-center ${
                         isSelected
@@ -569,12 +648,21 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
                       }`}
                       title={preset.description}
                     >
-                      <span>{preset.label}</span>
-                      {preset.badge && (
+                      <div className="flex items-center gap-0.5">
+                        {!isPresetAllowed && preset.hours > 15 / 3600 && (
+                          <Lock className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+                        )}
+                        <span>{preset.label}</span>
+                      </div>
+                      {preset.badge ? (
                         <span className="text-[8px] font-black text-amber-300 uppercase tracking-tight">
                           {preset.badge}
                         </span>
-                      )}
+                      ) : !isPresetAllowed && preset.hours > 15 / 3600 ? (
+                        <span className="text-[7px] font-extrabold text-amber-400/90 tracking-tighter">
+                          PRO Rs. 999
+                        </span>
+                      ) : null}
                     </button>
                   );
                 })}
@@ -658,6 +746,32 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
                   <span className="text-amber-300 font-bold">~{computeMetrics.estimatedStorageGb} GB ({spec.resolution})</span>
                 </div>
               </div>
+
+              {/* Pro Subscription Status or Upgrade Banner */}
+              {subscription?.isActive && subscription.plan === 'india_pro' ? (
+                <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-[11px] text-emerald-300">
+                  <span className="flex items-center gap-1.5 font-bold">
+                    <Crown className="w-3.5 h-3.5 text-amber-400" />
+                    <span>India Creator Pro Active • 100 Hours Max Cap Unlocked</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">Rs. 999 / mo</span>
+                </div>
+              ) : (
+                <div className="p-2.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-slate-900 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Crown className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span className="text-[11px] text-amber-200">
+                      <strong>India Creator Pro (Rs. 999/mo):</strong> Unlock 100h Max duration, 4K Ultra, and Priority Edge GPU dispatch.
+                    </span>
+                  </div>
+                  <button
+                    onClick={onOpenSubscriptionModal}
+                    className="px-2.5 py-1 bg-gradient-to-r from-amber-500 to-purple-600 hover:from-amber-400 hover:to-purple-500 text-white text-[10px] font-black rounded-lg shrink-0 shadow-sm transition-all"
+                  >
+                    Upgrade Rs. 999
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Camera Motion & Visual Style */}
@@ -704,19 +818,34 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = () => {
 
             {/* Big Generate Action Button */}
             <button
-              onClick={handleStartRender}
+              onClick={() => {
+                if (!isSpecAllowed) {
+                  onOpenSubscriptionModal?.();
+                } else {
+                  handleStartRender();
+                }
+              }}
               disabled={isRendering || !spec.prompt.trim()}
-              className="w-full py-3.5 px-4 bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white font-extrabold text-sm rounded-2xl flex items-center justify-center gap-2 transition-all shadow-xl shadow-purple-500/25 active:scale-95 disabled:opacity-50"
+              className={`w-full py-3.5 px-4 font-extrabold text-sm rounded-2xl flex items-center justify-center gap-2 transition-all shadow-xl active:scale-95 disabled:opacity-50 ${
+                !isSpecAllowed
+                  ? 'bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white shadow-purple-950/50'
+                  : 'bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white shadow-purple-500/25'
+              }`}
             >
               {isRendering ? (
                 <>
                   <Activity className="w-5 h-5 animate-spin" />
                   Synthesizing {formatDurationLabel(spec.durationHours)} ({spec.resolution} @ {spec.frameRate}fps)...
                 </>
+              ) : !isSpecAllowed ? (
+                <>
+                  <Crown className="w-5 h-5 text-amber-300" />
+                  <span>Unlock {formatDurationLabel(spec.durationHours)} with India Pro (Rs. 999/mo)</span>
+                </>
               ) : (
                 <>
                   <Video className="w-5 h-5" />
-                  Generate {formatDurationLabel(spec.durationHours)} Scene with Sora / Veo 3
+                  <span>Generate {formatDurationLabel(spec.durationHours)} Scene with Sora / Veo 3</span>
                 </>
               )}
             </button>

@@ -137,11 +137,11 @@ echo "Build Complete! Check android/app/build/outputs/"
                   Android Packages (.apk &amp; .aab)
                 </h3>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                  Google Play &amp; Sideload
+                  Offline Sideload &amp; Local Build
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Generate production Android App Bundle (AAB) or direct installable APK
+                Generate local Android APK or App Bundle for internal testing (Direct Play Store auto-publish disabled)
               </p>
             </div>
           </div>
@@ -193,21 +193,24 @@ echo "Build Complete! Check android/app/build/outputs/"
 
         {/* Content Body */}
         <div className="p-5 overflow-y-auto space-y-5 flex-1">
-          {/* TAB 1: AAB (Google Play Store) */}
+          {/* TAB 1: AAB (Local Build) */}
           {activeTab === 'aab' && (
             <div className="space-y-4">
               <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
                     <Shield className="w-4 h-4 text-emerald-400" />
-                    Google Play Publishing Format (.aab)
+                    Local Android App Bundle (.aab)
                   </span>
-                  <span className="text-[10px] font-mono font-bold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/15">
-                    PLAY CONSOLE READY
+                  <span className="text-[10px] font-mono font-bold text-amber-400 px-2 py-0.5 rounded bg-amber-500/15">
+                    LOCAL BUILD ONLY
                   </span>
                 </div>
+                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-300/90 leading-relaxed">
+                  <strong>Security Guard:</strong> Direct Google Play Store publishing is disabled to prevent automated credential leakage and store policy exploitation. Packages are built locally for manual developer review and internal signing.
+                </div>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  The Android App Bundle is Google Play’s official publishing format. Play&apos;s Dynamic Delivery generates optimized split APKs tailored for each device&apos;s CPU architecture (arm64-v8a, armeabi-v7a), screen resolution, and language resources.
+                  The Android App Bundle is generated locally using Gradle. Play&apos;s Dynamic Delivery split APKs can be tested offline using bundletool or sideloaded on devices.
                 </p>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800/80 text-[11px]">

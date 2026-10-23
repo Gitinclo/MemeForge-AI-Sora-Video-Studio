@@ -103,7 +103,7 @@ export interface TeamMember {
   id: string;
   name: string;
   email: string;
-  role: 'Owner' | 'Director' | 'Meme Lord' | 'VFX Artist' | 'Reviewer';
+  role: 'Owner' | 'Director' | 'Meme Lord' | 'VFX Artist' | 'Reviewer' | 'Editor' | 'Sound Designer';
   avatarColor: string;
   isOnline: boolean;
   activity: string;

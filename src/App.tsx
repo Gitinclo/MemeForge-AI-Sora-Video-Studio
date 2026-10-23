@@ -9,8 +9,11 @@ import { AiDirectorChatModal } from './components/AiDirectorChatModal';
 import { AndroidPackageModal } from './components/AndroidPackageModal';
 import { MarketplaceTab } from './components/MarketplaceTab';
 import { MarketplaceCheckoutModal } from './components/MarketplaceCheckoutModal';
+import { SubscriptionModal } from './components/SubscriptionModal';
 import { PWAInstallButton } from './components/PWAInstallButton';
+import { CinemaVfxEditorTab } from './components/CinemaVfxEditorTab';
 import { MEME_TEMPLATES } from './data/memeTemplates';
+import { UserSubscription } from './types/subscription';
 import {
   TextLayer,
   MemeSticker,
@@ -54,11 +57,32 @@ import {
   Volume2,
   Play,
   Square,
+  Crown,
+  Building2,
+  Boxes,
 } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'meme' | 'sora' | 'team' | 'market'>('meme');
+  const [activeTab, setActiveTab] = useState<'meme' | 'sora' | 'cinema' | 'team' | 'market'>('meme');
   const [isAndroidModalOpen, setIsAndroidModalOpen] = useState(false);
+  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
+  const [subscriptionModalCategory, setSubscriptionModalCategory] = useState<'individual' | 'company'>('individual');
+
+  // User Subscription State (persisted in localStorage, default Free)
+  const [subscription, setSubscription] = useState<UserSubscription>(() => {
+    try {
+      const saved = localStorage.getItem('memeforge_subscription');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error(e);
+    }
+    return {
+      plan: 'free',
+      isActive: true,
+      country: 'IN',
+      priceInr: 0,
+    };
+  });
 
   // Active Meme state
   const defaultTemplate = MEME_TEMPLATES[0];
@@ -870,6 +894,19 @@ export default function App() {
           </button>
 
           <button
+            onClick={() => setActiveTab('cinema')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              activeTab === 'cinema'
+                ? 'bg-gradient-to-r from-cyan-500 via-indigo-600 to-purple-600 text-white shadow-md shadow-cyan-500/20'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Boxes className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Cinema VFX (32K)</span>
+            <span className="sm:hidden">32K VFX</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('team')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
               activeTab === 'team'
@@ -887,6 +924,49 @@ export default function App() {
         <div className="flex items-center gap-2">
           {/* PWA Install Button */}
           <PWAInstallButton />
+
+          {/* Subscription Plan button (Individual ₹999/mo or Team ₹99,999/mo) */}
+          <button
+            onClick={() => {
+              setSubscriptionModalCategory(subscription.plan === 'company_team' ? 'company' : 'individual');
+              setIsSubscriptionModalOpen(true);
+            }}
+            className={`p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shadow-sm ${
+              subscription.isActive && subscription.plan === 'company_team'
+                ? 'bg-gradient-to-r from-purple-600/30 via-indigo-600/30 to-cyan-500/30 hover:from-purple-600/40 text-cyan-300 border border-cyan-500/50'
+                : subscription.isActive && subscription.plan === 'india_pro'
+                ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 hover:from-emerald-500/30 text-emerald-300 border border-emerald-500/40'
+                : 'bg-gradient-to-r from-amber-500/20 via-purple-500/20 to-indigo-500/20 hover:from-amber-500/30 text-amber-300 hover:text-white border border-amber-500/40 animate-pulse'
+            }`}
+            title="Manage Subscriptions: Individual Pro (₹999/mo) or Team Enterprise (₹99,999/mo)"
+          >
+            {subscription.isActive && subscription.plan === 'company_team' ? (
+              <Building2 className="w-4 h-4 text-cyan-400" />
+            ) : (
+              <Crown className="w-4 h-4 text-amber-400" />
+            )}
+            <span className="w-3.5 h-2.5 rounded-xs overflow-hidden flex flex-col border border-white/20 shrink-0">
+              <span className="h-1/3 bg-[#FF9933] w-full" />
+              <span className="h-1/3 bg-white w-full flex items-center justify-center">
+                <span className="w-0.5 h-0.5 rounded-full bg-[#000080]" />
+              </span>
+              <span className="h-1/3 bg-[#138808] w-full" />
+            </span>
+            <span className="hidden sm:inline">
+              {subscription.isActive && subscription.plan === 'company_team'
+                ? 'Team Active (Rs. 99,999)'
+                : subscription.isActive && subscription.plan === 'india_pro'
+                ? 'Pro Active (Rs. 999)'
+                : 'Plans: Rs. 999 / Rs. 99,999'}
+            </span>
+            <span className="sm:hidden">
+              {subscription.isActive && subscription.plan === 'company_team'
+                ? 'Team'
+                : subscription.isActive && subscription.plan === 'india_pro'
+                ? 'Pro'
+                : 'Plans'}
+            </span>
+          </button>
 
           {/* Android APK & AAB Packaging Modal Button */}
           <button
@@ -1131,14 +1211,31 @@ export default function App() {
 
         {/* TAB 3: SORA VIDEO STUDIO */}
         {activeTab === 'sora' && (
-          <SoraStudioTab />
+          <SoraStudioTab
+            subscription={subscription}
+            onOpenSubscriptionModal={() => setIsSubscriptionModalOpen(true)}
+            onOpenCinemaVfx={() => setActiveTab('cinema')}
+          />
         )}
 
-        {/* TAB 4: TEAM WORKSPACE & COLLABORATION */}
+        {/* TAB 4: CINEMA VFX STUDIO (32K / 1000 FPS / 192 kHz) */}
+        {activeTab === 'cinema' && (
+          <CinemaVfxEditorTab
+            subscription={subscription}
+            onOpenSubscriptionModal={() => setIsSubscriptionModalOpen(true)}
+          />
+        )}
+
+        {/* TAB 5: TEAM WORKSPACE & COLLABORATION */}
         {activeTab === 'team' && (
           <TeamWorkspaceTab
             versionHistory={versionHistory}
             onRollback={handleRollback}
+            subscription={subscription}
+            onOpenSubscriptionModal={(category?: 'individual' | 'company') => {
+              setSubscriptionModalCategory(category || 'company');
+              setIsSubscriptionModalOpen(true);
+            }}
           />
         )}
       </main>
@@ -1177,6 +1274,22 @@ export default function App() {
         onSuccessCrypto={handleSuccessCrypto}
         onSuccessUpi={handleSuccessUpi}
         onDepositFaucet={handleDepositFaucet}
+      />
+
+      {/* India Creator Pro (₹999 / mo) & Team Enterprise (₹99,999 / mo) Subscription Modal */}
+      <SubscriptionModal
+        isOpen={isSubscriptionModalOpen}
+        onClose={() => setIsSubscriptionModalOpen(false)}
+        subscription={subscription}
+        initialPlanCategory={subscriptionModalCategory}
+        onUpdateSubscription={(updated) => {
+          setSubscription(updated);
+          try {
+            localStorage.setItem('memeforge_subscription', JSON.stringify(updated));
+          } catch (e) {
+            console.error(e);
+          }
+        }}
       />
 
       {/* Footer info bar */}
