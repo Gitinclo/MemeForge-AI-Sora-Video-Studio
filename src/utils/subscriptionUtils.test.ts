@@ -8,8 +8,13 @@ import {
   canAccessResolution,
   canAccessFrameRate,
   canAccessTeamMembers,
+  canCreateWorkspace,
+  canAccessEnterpriseVault,
+  getCloudVaultQuota,
   generateIndiaProUpiUrl,
   generateCompanyTeamUpiUrl,
+  canAccessProjectManagementDashboard,
+  calculateProjectQueueMetrics,
 } from './subscriptionUtils.ts';
 import {
   UserSubscription,
@@ -103,3 +108,65 @@ test('generateIndiaProUpiUrl and generateCompanyTeamUpiUrl generate valid UPI pa
   assert.ok(url99999.includes('cu=INR'));
   assert.ok(url99999.includes('pa=memeforge.sub@icici'));
 });
+
+test('Team Enterprise subscription (Rs. 99,999) unlocks 10 isolated workspaces and 50 TB Cloud Vault', () => {
+  const companyUser: UserSubscription = {
+    plan: 'company_team',
+    isActive: true,
+    country: 'IN',
+    priceInr: 99999,
+    companyName: 'Acme Studio India',
+    gstin: '29ABCDE1234F1Z5',
+  };
+  const freeUser: UserSubscription = { plan: 'free', isActive: true, country: 'IN', priceInr: 0 };
+  const proUser: UserSubscription = { plan: 'india_pro', isActive: true, country: 'IN', priceInr: 999 };
+
+  // Workspaces limit check
+  assert.equal(canCreateWorkspace(0, companyUser), true);
+  assert.equal(canCreateWorkspace(9, companyUser), true);
+  assert.equal(canCreateWorkspace(10, companyUser), false);
+
+  assert.equal(canCreateWorkspace(0, freeUser), true);
+  assert.equal(canCreateWorkspace(1, freeUser), false);
+  assert.equal(canCreateWorkspace(1, proUser), false);
+
+  // Cloud Vault checks
+  assert.equal(canAccessEnterpriseVault(companyUser), true);
+  assert.equal(canAccessEnterpriseVault(freeUser), false);
+  assert.equal(canAccessEnterpriseVault(proUser), false);
+
+  const quota = getCloudVaultQuota(companyUser);
+  assert.equal(quota.storageTb, 50);
+  assert.equal(quota.maxWorkspaces, 10);
+  assert.equal(quota.isEnterprise, true);
+  assert.ok(quota.encryptionStandard.includes('AES-256'));
+});
+
+test('Team Enterprise subscription unlocks Project Management dashboard and queue metrics', () => {
+  const companyUser: UserSubscription = {
+    plan: 'company_team',
+    isActive: true,
+    country: 'IN',
+    priceInr: 99999,
+  };
+  const freeUser: UserSubscription = { plan: 'free', isActive: true, country: 'IN', priceInr: 0 };
+  const proUser: UserSubscription = { plan: 'india_pro', isActive: true, country: 'IN', priceInr: 999 };
+
+  assert.equal(canAccessProjectManagementDashboard(companyUser), true);
+  assert.equal(canAccessProjectManagementDashboard(freeUser), false);
+  assert.equal(canAccessProjectManagementDashboard(proUser), false);
+
+  const sampleJobs = [
+    { status: 'rendering', progress: 80 },
+    { status: 'compositing', progress: 40 },
+    { status: 'queued', progress: 0 },
+    { status: 'completed', progress: 100 },
+  ];
+  const metrics = calculateProjectQueueMetrics(sampleJobs);
+  assert.equal(metrics.total, 4);
+  assert.equal(metrics.activeCount, 2);
+  assert.equal(metrics.queuedCount, 1);
+  assert.equal(metrics.completedCount, 1);
+  assert.equal(metrics.avgProgress, 60);
+});
+

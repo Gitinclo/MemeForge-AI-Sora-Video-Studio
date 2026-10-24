@@ -133,6 +133,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         teamSeats: 1,
       });
       setIsProcessing(false);
+      onClose();
     }, 1200);
   };
 
@@ -156,6 +157,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         teamSeats: 50,
       });
       setIsProcessing(false);
+      onClose();
     }, 1500);
   };
 
@@ -745,6 +747,27 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                     </div>
 
                     <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+                      <div className="font-bold text-white flex items-center gap-2 text-[11px] uppercase tracking-wider text-cyan-300">
+                        <Building2 className="w-4 h-4 text-cyan-400" />
+                        <span>Workspaces &amp; Enterprise Cloud Vault</span>
+                      </div>
+                      <ul className="space-y-1.5 text-[11px] text-slate-300">
+                        <li className="flex items-center gap-1.5">
+                          <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                          <span><strong>10 Isolated Production Workspaces:</strong> Dedicated environments with GPU node allocations</span>
+                        </li>
+                        <li className="flex items-center gap-1.5">
+                          <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                          <span><strong>50 TB Encrypted Cloud Vault:</strong> Multi-region edge storage (Mumbai, Singapore, Tokyo, EU)</span>
+                        </li>
+                        <li className="flex items-center gap-1.5">
+                          <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                          <span><strong>AES-256 GCM Zero-Knowledge:</strong> End-to-end encrypted storage for 32K master plates &amp; ProRes stems</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
                       <div className="font-bold text-white flex items-center gap-2 text-[11px] uppercase tracking-wider text-amber-300">
                         <Shield className="w-4 h-4 text-amber-400" />
                         <span>Security &amp; Dedicated Support</span>
@@ -1011,6 +1034,18 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                             <td className="p-2 text-slate-400">2 Seats</td>
                             <td className="p-2 text-slate-300">1 Creator Seat (Solo)</td>
                             <td className="p-2 text-cyan-300 font-bold">50 Team Seats (Multi-User)</td>
+                          </tr>
+                          <tr className="hover:bg-slate-900/30">
+                            <td className="p-2 font-sans font-semibold text-slate-300">Isolated Production Workspaces</td>
+                            <td className="p-2 text-slate-400">1 (Default)</td>
+                            <td className="p-2 text-slate-400">1 (Solo)</td>
+                            <td className="p-2 text-cyan-300 font-bold">10 Workspaces (Isolated GPU Nodes)</td>
+                          </tr>
+                          <tr className="hover:bg-slate-900/30">
+                            <td className="p-2 font-sans font-semibold text-slate-300">Encrypted Cloud Vault</td>
+                            <td className="p-2 text-slate-400">1 GB Browser Cache</td>
+                            <td className="p-2 text-amber-300">100 GB AES-256 Vault</td>
+                            <td className="p-2 text-cyan-300 font-bold">50 TB Multi-Region Edge Vault</td>
                           </tr>
                           <tr className="hover:bg-slate-900/30">
                             <td className="p-2 font-sans font-semibold text-slate-300">GPU Cluster Acceleration</td>

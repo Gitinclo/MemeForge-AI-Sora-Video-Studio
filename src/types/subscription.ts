@@ -24,6 +24,10 @@ export interface SubscriptionPlanLimits {
   offlineBuildSupport: boolean; // Local offline APK / AAB package generation (Direct Play Store publish disabled for security)
   gstInvoiceEnabled: boolean;
   dedicatedSlaSupport: boolean;
+  teamWorkspacesMax: number; // 1 for Free & Pro, 10 for Team Enterprise
+  cloudVaultStorageTb: number; // 0.001 for Free (1GB), 0.1 for Pro (100GB), 50 TB for Team Enterprise
+  multiWorkspaceEnabled: boolean;
+  vaultEncryptionStandard: string;
 }
 
 export const FREE_PLAN_LIMITS: SubscriptionPlanLimits = {
@@ -50,6 +54,10 @@ export const FREE_PLAN_LIMITS: SubscriptionPlanLimits = {
   offlineBuildSupport: true,
   gstInvoiceEnabled: false,
   dedicatedSlaSupport: false,
+  teamWorkspacesMax: 1,
+  cloudVaultStorageTb: 0.001,
+  multiWorkspaceEnabled: false,
+  vaultEncryptionStandard: 'Standard Client Cache',
 };
 
 export const INDIA_PRO_PLAN_LIMITS: SubscriptionPlanLimits = {
@@ -76,6 +84,10 @@ export const INDIA_PRO_PLAN_LIMITS: SubscriptionPlanLimits = {
   offlineBuildSupport: true,
   gstInvoiceEnabled: false,
   dedicatedSlaSupport: false,
+  teamWorkspacesMax: 1,
+  cloudVaultStorageTb: 0.1, // 100 GB
+  multiWorkspaceEnabled: false,
+  vaultEncryptionStandard: 'AES-256 Cloud Vault',
 };
 
 export const COMPANY_TEAM_PLAN_LIMITS: SubscriptionPlanLimits = {
@@ -102,7 +114,40 @@ export const COMPANY_TEAM_PLAN_LIMITS: SubscriptionPlanLimits = {
   offlineBuildSupport: true,
   gstInvoiceEnabled: true, // Official B2B GST tax invoice with GSTIN & input tax credit
   dedicatedSlaSupport: true, // 24/7 dedicated enterprise account manager
+  teamWorkspacesMax: 10, // 10 isolated production workspaces
+  cloudVaultStorageTb: 50, // 50 TB dedicated encrypted cloud vault
+  multiWorkspaceEnabled: true,
+  vaultEncryptionStandard: 'AES-256 GCM Zero-Knowledge Multi-Region',
 };
+
+export interface EnterpriseWorkspace {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  assignedGpuNodes: number;
+  membersCount: number;
+  activeProjectsCount: number;
+  storageUsedGb: number;
+  isDefault?: boolean;
+  createdAt: string;
+}
+
+export interface EnterpriseVaultAsset {
+  id: string;
+  workspaceId: string;
+  name: string;
+  size: string;
+  sizeBytes: number;
+  type: '32K Master Plate' | 'ProRes 4444 XQ' | 'Fairlight 192kHz Audio' | 'Film 3D LUT' | '4K Video Loop' | 'Vector Template';
+  edgeNode: string;
+  latency: string;
+  permission: 'Team Read / Write' | 'Owner & Director Only' | 'VFX Restricted' | 'Public CDN Cached';
+  encrypted: boolean;
+  encryptionStandard: string;
+  uploadedBy: string;
+  uploadedAt: string;
+}
 
 export interface UserSubscription {
   plan: PlanTier;
@@ -117,4 +162,56 @@ export interface UserSubscription {
   companyName?: string;
   gstin?: string;
   teamSeats?: number;
+}
+
+export type ProductionJobStatus = 'rendering' | 'compositing' | 'in_review' | 'queued' | 'completed' | 'paused';
+export type ProductionJobPriority = 'urgent' | 'high' | 'normal';
+
+export interface VideoProductionJob {
+  id: string;
+  workspaceId: string;
+  title: string;
+  format: string;
+  resolution: string;
+  fps: number;
+  duration: string;
+  assignedNode: string;
+  status: ProductionJobStatus;
+  progress: number;
+  currentFrame: number;
+  totalFrames: number;
+  priority: ProductionJobPriority;
+  leadCollaborator: string;
+  eta: string;
+  submittedAt: string;
+  outputVaultAssetId?: string;
+}
+
+export interface CollaboratorPresence {
+  id: string;
+  name: string;
+  email: string;
+  role: 'Owner' | 'Director' | 'VFX Artist' | 'Editor' | 'Sound Designer' | 'Reviewer' | 'Producer';
+  avatarColor: string;
+  status: 'active' | 'in_review' | 'rendering' | 'idle' | 'offline';
+  currentActivity: string;
+  activeWorkspaceId: string;
+  activeWorkspaceName: string;
+  currentClipOrProject: string;
+  lastActive: string;
+  assignedNode: string;
+}
+
+export interface TeamActivityLog {
+  id: string;
+  workspaceId: string;
+  userId: string;
+  userName: string;
+  userRole: string;
+  userAvatarColor: string;
+  action: string;
+  target: string;
+  category: 'production_queue' | 'vault' | 'workspace' | 'review' | 'rbac' | 'pipeline';
+  timestamp: string;
+  statusTag?: string;
 }

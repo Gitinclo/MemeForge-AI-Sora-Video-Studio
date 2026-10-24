@@ -58,6 +58,35 @@ export function canAccessTeamMembers(requestedSeats: number, subscription?: User
 }
 
 /**
+ * Checks if user subscription can create an additional isolated workspace
+ */
+export function canCreateWorkspace(currentCount: number, subscription?: UserSubscription | null): boolean {
+  const limits = getPlanLimits(subscription);
+  return currentCount < limits.teamWorkspacesMax;
+}
+
+/**
+ * Checks if user subscription has full Enterprise 50 TB Cloud Vault access
+ */
+export function canAccessEnterpriseVault(subscription?: UserSubscription | null): boolean {
+  const limits = getPlanLimits(subscription);
+  return limits.cloudVaultStorageTb >= 50 && limits.multiWorkspaceEnabled;
+}
+
+/**
+ * Returns vault quota details for the active subscription
+ */
+export function getCloudVaultQuota(subscription?: UserSubscription | null) {
+  const limits = getPlanLimits(subscription);
+  return {
+    storageTb: limits.cloudVaultStorageTb,
+    maxWorkspaces: limits.teamWorkspacesMax,
+    isEnterprise: limits.multiWorkspaceEnabled,
+    encryptionStandard: limits.vaultEncryptionStandard,
+  };
+}
+
+/**
  * Formats UPI Deep Link URL for Indian users paying ₹999/month (Individual Creator Pro)
  */
 export function generateIndiaProUpiUrl(
@@ -92,4 +121,34 @@ export function calculateNextBillingDate(): string {
     month: 'short',
     year: 'numeric',
   });
+}
+
+/**
+ * Checks if the user's subscription unlocks the Team Enterprise Project Management Dashboard
+ */
+export function canAccessProjectManagementDashboard(subscription?: UserSubscription): boolean {
+  if (!subscription || !subscription.isActive) return false;
+  return subscription.plan === 'company_team';
+}
+
+/**
+ * Calculates aggregate metrics for production jobs
+ */
+export function calculateProjectQueueMetrics(jobs: { status: string; progress: number }[]) {
+  const activeJobs = jobs.filter((j) => j.status === 'rendering' || j.status === 'compositing');
+  const queuedJobs = jobs.filter((j) => j.status === 'queued');
+  const inReviewJobs = jobs.filter((j) => j.status === 'in_review');
+  const completedJobs = jobs.filter((j) => j.status === 'completed');
+  const avgProgress = activeJobs.length > 0
+    ? Math.round(activeJobs.reduce((acc, j) => acc + j.progress, 0) / activeJobs.length)
+    : 0;
+
+  return {
+    total: jobs.length,
+    activeCount: activeJobs.length,
+    queuedCount: queuedJobs.length,
+    inReviewCount: inReviewJobs.length,
+    completedCount: completedJobs.length,
+    avgProgress,
+  };
 }
