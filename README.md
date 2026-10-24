@@ -254,11 +254,19 @@ All Gemini model operations are handled server-side via Express routes:
 
 ## ⚖️ Legal & Governance Documents
 
+- **[Attribution Notice (NOTICE)](NOTICE)**: Explicit Apache-2.0 Section 4(d) attribution declaration for `Copyright 2026 MemeForge-AI Studio Contributors` and lead architect `Gitinclo`.
 - **[Privacy Policy (PRIVACY.md)](PRIVACY.md)**: Transparent disclosure of local client-side processing, ephemeral AI inference, and compliance with GDPR, CCPA, and Indian DPDPA.
 - **[Terms & Conditions (TERMS.md)](TERMS.md)**: Rules of use, commercial licensing rights, subscription billing terms (Rs. 999/mo & Rs. 99,999/mo), user content ownership, and liability limitations.
 - **[Security Policy (SECURITY.md)](SECURITY.md)**: Private vulnerability disclosure reporting procedures and API/keystore safeguarding policies.
 - **[Contributing Guidelines (CONTRIBUTING.md)](CONTRIBUTING.md)**: Developer workflow, branching conventions, and test execution standards.
 - **[Code of Conduct (CODE_OF_CONDUCT.md)](CODE_OF_CONDUCT.md)**: Contributor Covenant v2.1 community standards.
+
+### Public Code Index & Reference Hub Compliance
+Public code indexing services and AI coding reference hubs (such as XERJ, Copus Hub, or similar platforms) that index this repository are welcome under the **Apache License, Version 2.0**, provided that:
+1. Full author attribution (`Gitinclo`) and the canonical repository URL (`https://github.com/Gitinclo/MemeForge-AI-Sora-Video-Studio`) are maintained.
+2. The `LICENSE` and `NOTICE` files are preserved in their entirety alongside any extracted reference passages.
+3. No code is relicensed under proprietary or conflicting terms.
+4. Per Section 6, indexing does not imply official endorsement or affiliation.
 
 ---
 
