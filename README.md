@@ -83,7 +83,11 @@ MemeForge features dedicated Indian pricing and payment workflows tailored for i
 | **Max AI Video Duration** | 15 seconds max | **Up to 100 Hours Max** | **Unlimited 100-Hour Continuous** |
 | **Max Resolution & FPS** | 720p HD @ 30fps | 4K Ultra & 1080p @ 120fps | 4K / 32K Master @ 120–1000 FPS |
 | **Collaborative Seats** | 2 Seats max | 1 Creator Seat (Solo) | **50 Team Member Seats** (Granular RBAC) |
+| **Multi-Workspace Hub** | 1 Default Workspace | 1 Default Workspace | **10 Isolated Production Workspaces** |
+| **Encrypted Cloud Vault** | 1 GB Client Cache | 100 GB AES-256 Cloud Vault | **50 TB AES-256 GCM Zero-Knowledge Multi-Region** |
+| **Project Management** | — | — | **Live Production Queues, Node Telemetry & Collaborator Presence** |
 | **GPU Processing Queue** | Shared Eco cluster | Priority 4-Cluster Dispatch | **Dedicated 8-Node Enterprise Cluster** (0 Wait) |
+| **Activity Audit Trail** | Local session | Local session | **Immutable CSV & JSON Exportable Audit Logs** |
 | **AI Magic Captions** | 10 captions / day | Unlimited Gemini Vision | Unlimited Enterprise Pool |
 | **Watermark & Rights** | MemeForge corner watermark | Zero Watermark (Studio Master) | Full Broadcast Commercial Rights |
 | **Marketplace Fees** | 10% platform fee | 0% Platform Fee (Instant UPI) | 0% Platform Fee (Direct corporate bank payout) |
@@ -109,10 +113,23 @@ MemeForge features dedicated Indian pricing and payment workflows tailored for i
 
 ---
 
-### 5. 👥 Team Workspace & Version Control
+### 5. 👥 Team Workspace, Multi-Workspaces & Project Management
+- **Project Management & Production Dashboard**:
+  - Live video production queues with real-time cluster node telemetry (RTX 4090 D, A100 SXM, H100 NVLink), frame progress counters, and ETA estimates.
+  - Interactive render controls: Pause / Resume, Priority Boost, Cancel, and Preview modal with Cloud Vault synchronization.
+  - Interactive Enqueue Video Production Job modal for dispatching new rendering tasks.
+  - Real-time collaborator presence tracking with active workstation nodes, current clip activity, and direct **Nudge Collaborator** action.
+  - Immutable activity logs with category filtering (`Queue`, `Vault`, `Workspace`, `Review`, `RBAC`) and direct **JSON & CSV export**.
+- **Multi-Workspace Hub (Up to 10 Isolated Workspaces)**:
+  - Create and manage isolated production workspaces for different client accounts or film projects.
+  - Per-workspace GPU node allocation, team member assignments, and storage isolation.
+- **Encrypted 50 TB Cloud Vault**:
+  - Enterprise-grade asset repository with **AES-256 GCM Zero-Knowledge Multi-Region** encryption.
+  - Edge caching telemetry with sub-10ms CDN delivery across APAC (Mumbai), EU (Frankfurt), and US (Virginia).
+  - Multi-tier permission controls: *Team Read/Write*, *Owner & Director Only*, *VFX Restricted*, and *Public CDN Cached*.
 - **Version Snapshots & Rollback**: Instant branching (`main-cut`) with one-click snapshot rollback.
-- **Role-Based Access Control (RBAC)**: Manage workspace permissions across Owner, Director, VFX Artist, Editor, Sound Designer, and Reviewer.
-- **Interactive Seat Management**: Real-time capacity tracking (`Seats: X / 50`) with an in-app invite modal and upgrade shortcuts.
+- **Role-Based Access Control (RBAC)**: Manage workspace permissions across Owner, Director, VFX Artist, Editor, Sound Designer, Reviewer, and Producer.
+- **Interactive Seat Management**: Real-time capacity tracking (`Seats: X / 50`) with in-app member invites and direct seat upgrades.
 
 ---
 
@@ -149,12 +166,13 @@ PORT=3000
 ```bash
 npm test
 ```
-Runs the full 23-test suite covering:
-- Audio synthesis PCM generation and WAV header encoding
-- Meme style presets and text layer manipulation
-- Sora video duration clamping and compute metrics
-- Subscription limits (Free vs India Pro Rs. 999 vs Company Rs. 99,999)
-- Cinema VFX 32K Gigapixel math, 1000 FPS 64-bit timebase precision, and 192 kHz audio sample rates
+Runs the full 31-test suite across 6 test suites covering:
+- Audio synthesis PCM generation and WAV header encoding (`memeAudioEngine.test.ts`)
+- Meme style presets and text layer manipulation (`memeStylePresets.test.ts`)
+- Sora video duration clamping and compute metrics (`videoDurationUtils.test.ts`)
+- Subscription limits (Free vs India Pro Rs. 999 vs Company Rs. 99,999), 10 isolated workspaces, 50 TB Cloud Vault, and Project Management queue metrics (`subscriptionUtils.test.ts`)
+- Cinema VFX 32K Gigapixel math, 1000 FPS 64-bit timebase precision, and 192 kHz audio sample rates (`cinemaEngine.test.ts`)
+- Meme canvas text wrapping, category/mood filtering, and Web3/UPI wallet balance logic (`tests/meme-logic.test.ts`)
 
 ### 4. Start the Application
 ```bash
@@ -218,31 +236,46 @@ All Gemini model operations are handled server-side via Express routes:
 │   ├── icon.svg
 │   ├── manifest.webmanifest
 │   └── pwa-512x512.png
+├── scripts/                         # Build and automation shell & Python scripts
+│   ├── build-apk-aab.sh             # Automated APK/AAB build pipeline script
+│   └── generate_pwa_icons.py        # PWA icon generator
+├── tests/
+│   └── meme-logic.test.ts           # Word-wrap, tag/mood filters, and Web3/UPI wallet tests
 ├── src/
 │   ├── components/
+│   │   ├── AiCaptionSuggestionsBar.tsx # Quick-action suggested caption chips
+│   │   ├── AiDirectorChatModal.tsx  # Gemini comedy co-director chat drawer
+│   │   ├── AndroidPackageModal.tsx   # In-app APK/AAB compilation & keystore manager
 │   │   ├── CinemaVfxEditorTab.tsx   # 32K, 1000 FPS, ACES 2.0 & 192 kHz Cinema VFX Workstation
+│   │   ├── LegalDocsModal.tsx       # In-app Terms of Service and Privacy modal
+│   │   ├── MagicCaptionModal.tsx     # Gemini Vision multimodal auto-captioning
+│   │   ├── MarketplaceCheckoutModal.tsx # Web3 & UPI checkout drawer
+│   │   ├── MarketplaceTab.tsx        # Crypto & UPI template marketplace
+│   │   ├── MemeAudioLayerPanel.tsx   # Multi-track meme soundboard & audio synthesizer
+│   │   ├── MemeCanvas.tsx            # HTML5 live typography & sticker canvas editor
+│   │   ├── MemeStylePresetPicker.tsx # Preset font & humor styling switcher
+│   │   ├── MemeTemplateSelector.tsx  # Vector meme templates catalog selector
+│   │   ├── MemeToolbar.tsx           # Text styling, outline, font family & filter controls
+│   │   ├── PWAInstallButton.tsx      # Progressive Web App install prompt banner
 │   │   ├── SoraStudioTab.tsx         # Sora/Veo video studio with up to 100-hour duration
 │   │   ├── SubscriptionModal.tsx     # India UPI (Rs. 999) & Enterprise (Rs. 99,999) billing
-│   │   ├── TeamWorkspaceTab.tsx      # 50-seat team hub, RBAC, and rollback snapshots
-│   │   ├── MemeCanvas.tsx            # HTML5 live typography & sticker canvas editor
-│   │   ├── MemeToolbar.tsx           # Text styling, outline, font family & filter controls
-│   │   ├── MemeAudioLayerPanel.tsx   # Multi-track meme soundboard & audio synthesizer
-│   │   ├── MarketplaceTab.tsx        # Crypto & UPI template marketplace
-│   │   ├── AndroidPackageModal.tsx   # In-app APK/AAB compilation & keystore manager
-│   │   └── MagicCaptionModal.tsx     # Gemini Vision multimodal auto-captioning
+│   │   └── TeamWorkspaceTab.tsx      # Multi-workspace, 50 TB Vault, and Project Management
 │   ├── data/
 │   │   ├── memeTemplates.ts          # Vector meme templates catalog & sticker presets
 │   │   └── memeStylePresets.ts       # Preset fonts, strokes, and humor styles
 │   ├── types/
 │   │   ├── cinemaEngine.ts           # Types for 32K, 1000 FPS, ACES, 192kHz audio & scopes
-│   │   ├── subscription.ts           # Types for Free, India Pro, and Team Company plans
+│   │   ├── subscription.ts           # Types for Free, India Pro, Enterprise, Vault & Queue
 │   │   └── meme.ts                   # Core meme, canvas, marketplace & crypto types
 │   ├── utils/
 │   │   ├── cinemaEngine.ts           # 64-bit timebase math, 32K compute metrics, .cube LUTs
 │   │   ├── cinemaEngine.test.ts      # Unit tests for cinema resolution, FPS, and audio
 │   │   ├── memeAudioEngine.ts        # Synthetic PCM audio engine & WebM video encoder
+│   │   ├── memeAudioEngine.test.ts   # Audio engine unit tests
 │   │   ├── subscriptionUtils.ts      # Plan limits verification & UPI deep link generators
-│   │   └── videoDurationUtils.ts     # 100-hour duration clamping & timecode formatting
+│   │   ├── subscriptionUtils.test.ts # Subscription & project queue metrics tests
+│   │   ├── videoDurationUtils.ts     # 100-hour duration clamping & timecode formatting
+│   │   └── videoDurationUtils.test.ts# Video duration unit tests
 │   ├── App.tsx                       # Master navigation & tab routing coordinator
 │   └── main.tsx                      # React root entry point
 ├── server.ts                        # Express backend proxying Google GenAI SDK routes
