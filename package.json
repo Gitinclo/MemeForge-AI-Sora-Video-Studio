@@ -10,7 +10,7 @@
     "start": "tsx server.ts",
     "clean": "node -e \"const fs=require('fs');['dist','server.js'].forEach(p=>{try{fs.rmSync(p,{recursive:true,force:true})}catch(e){}})\"",
     "lint": "tsc --noEmit",
-    "test": "tsx --test src/utils/memeAudioEngine.test.ts src/data/memeStylePresets.test.ts src/utils/videoDurationUtils.test.ts src/utils/subscriptionUtils.test.ts src/utils/cinemaEngine.test.ts src/utils/youtubeUploadUtils.test.ts tests/meme-logic.test.ts"
+    "test": "tsx --test src/utils/memeAudioEngine.test.ts src/data/memeStylePresets.test.ts src/utils/videoDurationUtils.test.ts src/utils/subscriptionUtils.test.ts src/utils/cinemaEngine.test.ts src/utils/youtubeUploadUtils.test.ts src/utils/leo8kEngine.test.ts tests/meme-logic.test.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

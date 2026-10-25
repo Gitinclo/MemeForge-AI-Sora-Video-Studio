@@ -76,12 +76,18 @@ export interface VideoProjectSpec {
   title: string;
   prompt: string;
   negativePrompt: string;
-  resolution: '720p HD' | '1080p FHD' | '4K Ultra';
+  resolution: '720p HD' | '1080p FHD' | '4K Ultra' | '8K Cinema Master';
   frameRate: 24 | 30 | 60 | 120;
   aspectRatio: '16:9' | '9:16' | '1:1' | '21:9';
   cameraMotion: 'Static' | 'Dolly Zoom In' | 'Pan Right' | 'Tilt Up' | 'Orbit 360' | 'FPV Drone Dive';
   style: 'Photorealistic' | 'Cyberpunk Neon' | 'Cinematic Film 35mm' | 'Anime Ethereal' | 'Retro VHS';
   durationHours: number; // Up to 100 hours max
+  // 8K Cascaded Super-Resolution & DiT settings
+  isCascaded8kEnabled?: boolean;
+  activeCascadeStage?: 'stage1_base' | 'stage2_upscaler_a' | 'stage3_upscaler_b';
+  flowMatchingSolver?: 'Euler' | 'Midpoint' | 'Runge-Kutta 4' | 'DPM-Solver++';
+  noiseAugmentationSigma?: number;
+  temporalAttentionFrames?: number;
 }
 
 export interface VersionSnapshot {

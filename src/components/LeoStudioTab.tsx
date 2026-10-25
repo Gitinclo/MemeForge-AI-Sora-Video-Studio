@@ -22,6 +22,18 @@ import {
   Crown,
   Lock,
   Youtube,
+  Cpu,
+  GitBranch,
+  FileCode,
+  Terminal,
+  Check,
+  Copy,
+  ExternalLink,
+  X,
+  Boxes,
+  Wand2,
+  Eye,
+  BookOpen,
 } from 'lucide-react';
 import {
   MAX_VIDEO_DURATION_HOURS,
@@ -37,6 +49,15 @@ import {
   canAccessResolution,
   canAccessFrameRate,
 } from '../utils/subscriptionUtils';
+import {
+  getCascadedPipelineStages,
+  calculateSpacetimePatchTokens,
+  calculate8kMasterMetrics,
+  synthesizeVlmDenseCaption,
+  OPEN_SOURCE_BENCHMARKS,
+  getPyTorchCascadedPipelineCode,
+  getInfrastructureStackConfig,
+} from '../utils/leo8kEngine';
 
 interface LeoStudioTabProps {
   onMemeToVideoPrompt?: (promptText: string) => void;
@@ -70,11 +91,21 @@ export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
   const [renderProgress, setRenderProgress] = useState(0);
   const [currentStage, setCurrentStage] = useState('Idle');
   const [isEnhancing, setIsEnhancing] = useState(false);
+  const [isVlmRecaptioning, setIsVlmRecaptioning] = useState(false);
+  const [isBlueprintModalOpen, setIsBlueprintModalOpen] = useState(false);
+  const [blueprintActiveTab, setBlueprintActiveTab] = useState<'dit' | 'cascade' | 'vlm' | 'stack' | 'opensource' | 'code'>('dit');
+  const [selectedCascadeStage, setSelectedCascadeStage] = useState<'stage1_base' | 'stage2_upscaler_a' | 'stage3_upscaler_b'>('stage3_upscaler_b');
+  const [flowSolver, setFlowSolver] = useState<'Euler' | 'Midpoint' | 'Runge-Kutta 4' | 'DPM-Solver++'>('Euler');
+  const [noiseAugSigma, setNoiseAugSigma] = useState(0.08);
+  const [temporalAttentionWindow, setTemporalAttentionWindow] = useState(32);
+  const [copiedBlueprintCode, setCopiedBlueprintCode] = useState<string | null>(null);
   const [durationInputUnit, setDurationInputUnit] = useState<'hours' | 'minutes' | 'seconds'>('hours');
 
   const totalDurationSec = (spec.durationHours || 100) * 3600;
   const [currentTimecode, setCurrentTimecode] = useState(14400); // 4 hours in default preview
   const computeMetrics = calculateVideoComputeMetrics(spec.durationHours || 100, spec.frameRate, spec.resolution);
+  const master8kMetrics = calculate8kMasterMetrics(spec.durationHours || 100, spec.frameRate);
+  const cascadeStages = getCascadedPipelineStages();
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
@@ -106,7 +137,29 @@ export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
     }
   };
 
-  // Video Generation Pipeline Trigger
+  // Synthetic VLM Dense Re-captioner (The "Synthetic Edge" for DiTs)
+  const handleVlmRecaption = async () => {
+    if (!spec.prompt) return;
+    setIsVlmRecaptioning(true);
+    try {
+      const res = await fetch('/api/leo/vlm-recaption', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: spec.prompt, resolution: spec.resolution }),
+      });
+      const data = await res.json();
+      if (data.recaptioned) {
+        setSpec((prev) => ({ ...prev, prompt: data.recaptioned }));
+      }
+    } catch (e) {
+      console.error(e);
+      setSpec((prev) => ({ ...prev, prompt: synthesizeVlmDenseCaption(prev.prompt) }));
+    } finally {
+      setIsVlmRecaptioning(false);
+    }
+  };
+
+  // Video Generation Pipeline Trigger (With 8K Cascaded Super-Resolution stages)
   const handleStartRender = () => {
     if (isRendering) return;
     if (!isSpecAllowed) {
@@ -118,14 +171,41 @@ export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
 
     const totalFrames = Math.round(totalDurationSec * spec.frameRate);
     const hoursStr = formatDurationLabel(spec.durationHours);
+    const is8k = spec.resolution === '8K Cinema Master';
 
-    const stages = [
-      { p: 15, msg: `Pre-Flight: Prompt semantic vectorization & ${hoursStr} keyframe roadmap...` },
-      { p: 40, msg: `Distributed Diffusion: Partitioning ${totalFrames.toLocaleString()} frames across 4 GPU clusters...` },
-      { p: 70, msg: `Super-Resolution: Neural upscaling to ${spec.resolution} with persistent latent memory...` },
-      { p: 90, msg: `Camera Motion: Interpolating continuous ${spec.cameraMotion} trajectories without drift...` },
-      { p: 100, msg: `Distributed CDN Master: ${hoursStr} stream ready (100h Max Cap Engine)` },
-    ];
+    const stages = is8k
+      ? [
+          {
+            p: 15,
+            msg: `Stage 1 Base DiT: 3D Spacetime Patches & Flow Matching (${flowSolver} 25 steps at 1080p)...`,
+          },
+          {
+            p: 40,
+            msg: `Stage 2 Upscaler A: Denoising 1080p -> 4K with Noise Augmentation (σ = ${noiseAugSigma}) for pores & fabric weave...`,
+          },
+          {
+            p: 70,
+            msg: `Stage 3 Upscaler B: Bilateral ${temporalAttentionWindow}-frame temporal attention upscaling 4K -> 8K Master...`,
+          },
+          {
+            p: 90,
+            msg: `Temporal Anti-Flicker: Resolving 33.18 MP/frame (7680×4320 @ ${spec.frameRate}fps) across H100 clusters...`,
+          },
+          {
+            p: 100,
+            msg: `8K Cinema Master Complete: ${hoursStr} ProRes 4444 XQ stream generated with Zero Inter-Frame Flickering!`,
+          },
+        ]
+      : [
+          { p: 15, msg: `Pre-Flight: Prompt semantic vectorization & ${hoursStr} keyframe roadmap...` },
+          {
+            p: 40,
+            msg: `Distributed Diffusion: Partitioning ${totalFrames.toLocaleString()} frames across 4 GPU clusters...`,
+          },
+          { p: 70, msg: `Super-Resolution: Neural upscaling to ${spec.resolution} with persistent latent memory...` },
+          { p: 90, msg: `Camera Motion: Interpolating continuous ${spec.cameraMotion} trajectories without drift...` },
+          { p: 100, msg: `Distributed CDN Master: ${hoursStr} stream ready (100h Max Cap Engine)` },
+        ];
 
     let currentIdx = 0;
     const interval = setInterval(() => {
@@ -274,6 +354,15 @@ export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
             <ShieldCheck className="w-4 h-4 text-cyan-400" />
             <span className="text-cyan-400 text-[11px] font-bold">E2E Encrypted</span>
           </div>
+
+          <button
+            onClick={() => setIsBlueprintModalOpen(true)}
+            className="px-3 py-1.5 rounded-2xl bg-gradient-to-r from-amber-500/20 via-purple-500/20 to-cyan-500/20 hover:from-amber-500/30 hover:to-cyan-500/30 border border-amber-500/40 text-amber-300 hover:text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm"
+            title="Inspect 8K Cascaded DiT Architecture Technical Blueprint"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+            <span>8K DiT Blueprint</span>
+          </button>
         </div>
       </div>
 
@@ -292,7 +381,7 @@ export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
             <div className="absolute top-4 left-4 flex items-center gap-2">
               <span className="px-2.5 py-1 rounded-lg bg-black/75 border border-purple-500/40 text-purple-300 text-xs font-mono font-bold flex items-center gap-1.5 backdrop-blur-md">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                VEO 3.1 • {spec.resolution} • {spec.frameRate} FPS • {formatDurationLabel(spec.durationHours)}
+                {spec.resolution === '8K Cinema Master' ? 'LEO DiT 8K Cascaded' : 'LEO Veo 3.1'} • {spec.resolution} • {spec.frameRate} FPS • {formatDurationLabel(spec.durationHours)}
               </span>
               <span className="px-2 py-1 rounded-lg bg-black/75 border border-slate-700 text-slate-300 text-xs font-mono backdrop-blur-md">
                 {spec.aspectRatio}
@@ -464,14 +553,27 @@ export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
                 <Sliders className="w-4 h-4 text-purple-400" />
                 Generation Controls
               </span>
-              <button
-                onClick={handleEnhancePrompt}
-                disabled={isEnhancing}
-                className="text-[11px] font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1 transition-colors disabled:opacity-50"
-              >
-                <Zap className="w-3.5 h-3.5" />
-                {isEnhancing ? 'Optimizing...' : 'Flash-Lite Enhance'}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleVlmRecaption}
+                  disabled={isVlmRecaptioning}
+                  className="text-[11px] font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors disabled:opacity-50"
+                  title="Synthesize dense VLM camera optics and lighting specs (Synthetic Data Pipeline)"
+                >
+                  <Wand2 className="w-3.5 h-3.5 text-cyan-400" />
+                  {isVlmRecaptioning ? 'VLM Recaptioning...' : 'VLM Dense Re-caption'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEnhancePrompt}
+                  disabled={isEnhancing}
+                  className="text-[11px] font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1 transition-colors disabled:opacity-50"
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  {isEnhancing ? 'Optimizing...' : 'Flash-Lite'}
+                </button>
+              </div>
             </h4>
 
             {/* Prompt input */}
@@ -490,11 +592,19 @@ export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
 
             {/* Resolution Buttons */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                Resolution Output Control
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {(['720p HD', '1080p FHD', '4K Ultra'] as const).map((res) => {
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Resolution Output Control
+                </label>
+                {spec.resolution === '8K Cinema Master' && (
+                  <span className="text-[10px] font-mono text-cyan-400 font-bold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                    33.18 Megapixels / Frame
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {(['720p HD', '1080p FHD', '4K Ultra', '8K Cinema Master'] as const).map((res) => {
                   const isSel = spec.resolution === res;
                   const isProRes = res !== '720p HD';
                   const isAllowed = canAccessResolution(res, subscription);
@@ -505,24 +615,132 @@ export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
                         setSpec({ ...spec, resolution: res });
                         if (!isAllowed) onOpenSubscriptionModal?.();
                       }}
-                      className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all relative flex flex-col items-center justify-center ${
+                      className={`py-2 px-1.5 rounded-xl text-xs font-bold border transition-all relative flex flex-col items-center justify-center ${
                         isSel
                           ? 'bg-purple-500/20 border-purple-500 text-purple-300 shadow-md shadow-purple-500/10'
                           : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
                       }`}
                     >
                       <span className="flex items-center gap-1">
-                        <span>{res}</span>
+                        <span className="truncate">{res.replace(' Cinema Master', '')}</span>
                         {isProRes && !isProUser && (
                           <span className="text-[8px] font-black px-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
                             PRO
                           </span>
                         )}
                       </span>
+                      {res === '8K Cinema Master' && (
+                        <span className="text-[8px] font-mono text-cyan-400 font-bold mt-0.5">8K DiT</span>
+                      )}
                     </button>
                   );
                 })}
               </div>
+            </div>
+
+            {/* 8K Cascaded Super-Resolution Pipeline Inspector */}
+            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-purple-950/40 via-slate-950 to-cyan-950/40 border border-purple-500/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <GitBranch className="w-3.5 h-3.5 text-cyan-400" />
+                  Cascaded 8K Super-Resolution Pipeline
+                </span>
+                <span className="text-[10px] font-mono text-amber-300 font-bold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
+                  DiT + 3D VAE Latent
+                </span>
+              </div>
+
+              {/* 3 Interactive Pipeline Stages */}
+              <div className="grid grid-cols-3 gap-1.5">
+                {cascadeStages.map((stg, idx) => {
+                  const isCur = selectedCascadeStage === stg.stageId;
+                  return (
+                    <button
+                      key={stg.stageId}
+                      type="button"
+                      onClick={() => setSelectedCascadeStage(stg.stageId)}
+                      className={`p-2 rounded-xl border text-left transition-all ${
+                        isCur
+                          ? 'bg-purple-500/20 border-purple-400 text-white shadow-md'
+                          : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      <div className="text-[10px] text-cyan-400 font-mono font-bold">Stage {idx + 1}</div>
+                      <div className="text-[11px] font-bold truncate text-slate-200">{stg.outputResolution.split(' ')[0]}</div>
+                      <div className="text-[9px] text-slate-500 truncate">
+                        {stg.stageId === 'stage1_base' ? 'Base DiT' : stg.stageId === 'stage2_upscaler_a' ? 'Upscaler A' : 'Upscaler B'}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Active Stage Deep Details */}
+              {(() => {
+                const cur = cascadeStages.find((s) => s.stageId === selectedCascadeStage);
+                if (!cur) return null;
+                return (
+                  <div className="p-2.5 rounded-xl bg-slate-950/90 border border-slate-800 text-[11px] space-y-2">
+                    <div className="flex items-center justify-between font-bold">
+                      <span className="text-white">{cur.name}</span>
+                      <span className="text-cyan-400 font-mono text-[10px]">
+                        {cur.nativeWidth}×{cur.nativeHeight} ({cur.megapixelsPerFrame} MP)
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 leading-relaxed">{cur.technique}</p>
+
+                    {/* Controls per stage */}
+                    {cur.stageId === 'stage1_base' && (
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 text-[10px]">
+                        <span className="text-slate-400">Flow Matching Solver:</span>
+                        <select
+                          value={flowSolver}
+                          onChange={(e) => setFlowSolver(e.target.value as any)}
+                          className="bg-slate-900 border border-slate-700 rounded px-1.5 py-0.5 text-slate-200 font-mono"
+                        >
+                          <option value="Euler">Euler (25 steps)</option>
+                          <option value="Midpoint">Midpoint (20 steps)</option>
+                          <option value="Runge-Kutta 4">RK4 (30 steps)</option>
+                          <option value="DPM-Solver++">DPM-Solver++</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {cur.stageId === 'stage2_upscaler_a' && (
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 text-[10px]">
+                        <span className="text-slate-400">Noise Augmentation (Texture Hallucination):</span>
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="range"
+                            min="0.05"
+                            max="0.20"
+                            step="0.01"
+                            value={noiseAugSigma}
+                            onChange={(e) => setNoiseAugSigma(parseFloat(e.target.value))}
+                            className="w-16 accent-purple-500"
+                          />
+                          <span className="font-mono text-amber-300">σ={noiseAugSigma}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {cur.stageId === 'stage3_upscaler_b' && (
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 text-[10px]">
+                        <span className="text-slate-400">Anti-Flicker Temporal Window:</span>
+                        <select
+                          value={temporalAttentionWindow}
+                          onChange={(e) => setTemporalAttentionWindow(parseInt(e.target.value))}
+                          className="bg-slate-900 border border-slate-700 rounded px-1.5 py-0.5 text-slate-200 font-mono"
+                        >
+                          <option value={16}>16 frames (Low VRAM)</option>
+                          <option value={32}>32 frames (Optimal)</option>
+                          <option value={64}>64 frames (Ultra Anti-Flicker)</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Frame Rate Buttons */}
@@ -868,6 +1086,321 @@ export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
           </div>
         </div>
       </div>
+
+      {/* 8K Cascaded DiT Technical Architecture Blueprint Modal */}
+      {isBlueprintModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in">
+          <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/70">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-lg">
+                  <Boxes className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                    LEO 8K Cascaded DiT Architecture Blueprint
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-mono">
+                      Beyond Diffusion
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Decoupled Multi-Stage 8K Synthesis • Diffusion Transformer • Flow Matching • H100/B200 FSDP
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsBlueprintModalOpen(false)}
+                className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Navigation Tabs */}
+            <div className="flex flex-wrap gap-1 p-3 bg-slate-950/50 border-b border-slate-800 text-xs font-bold">
+              {[
+                { id: 'dit', label: '1. Core DiT & 3D Patches' },
+                { id: 'cascade', label: '2. Cascaded 8K Pipeline' },
+                { id: 'vlm', label: '3. Synthetic VLM Edge' },
+                { id: 'stack', label: '4. Infrastructure Stack' },
+                { id: 'opensource', label: '5. Open-Source Benchmark' },
+                { id: 'code', label: '6. PyTorch & Stack Code' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setBlueprintActiveTab(tab.id as any)}
+                  className={`px-3 py-1.5 rounded-xl transition-all ${
+                    blueprintActiveTab === tab.id
+                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-5 flex-1 text-xs leading-relaxed text-slate-300">
+              {/* TAB 1: CORE DiT */}
+              {blueprintActiveTab === 'dit' && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-slate-950 rounded-2xl border border-purple-500/30 space-y-3">
+                    <h4 className="text-sm font-black text-white flex items-center gap-2">
+                      <Cpu className="w-4 h-4 text-purple-400" />
+                      1. The Core Architecture: Diffusion Transformer (DiT)
+                    </h4>
+                    <p>
+                      Traditional video generation models rely on 2D U-Nets with temporal convolutions, causing motion drift, blurry frames, and severe distortion beyond 1024px. LEO uses a pure <strong>Diffusion Transformer (DiT)</strong> that matches LLM-level scalability.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="p-3.5 bg-slate-950/70 border border-slate-800 rounded-xl space-y-1.5">
+                      <span className="text-amber-400 font-bold block text-xs">3D Spacetime Patches</span>
+                      <p className="text-[11px] text-slate-400">
+                        Divides video into 3D spacetime volumes (<code className="text-slate-200">4×8×8</code> cubes). Flattened into tokens like words in an LLM, allowing the transformer to learn true 3D spatial geometry and motion continuity.
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 bg-slate-950/70 border border-slate-800 rounded-xl space-y-1.5">
+                      <span className="text-cyan-400 font-bold block text-xs">3D VAE Latent Compression</span>
+                      <p className="text-[11px] text-slate-400">
+                        Never trains on raw pixels. A 3D Video Autoencoder compresses high-res video 8× spatially and 4× temporally into a compact latent space. The DiT operates strictly on latents, decoded back to 8K pixels by the 3D VAE.
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 bg-slate-950/70 border border-slate-800 rounded-xl space-y-1.5">
+                      <span className="text-emerald-400 font-bold block text-xs">Flow Matching (Rectified Flows)</span>
+                      <p className="text-[11px] text-slate-400">
+                        Replaces curved diffusion paths with straight trajectories from Gaussian noise to data. Solves ODEs in 20-25 steps (Euler/RK4) instead of 100 DDIM steps, yielding faster inference and crisper details.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: CASCADED SUPER-RESOLUTION */}
+              {blueprintActiveTab === 'cascade' && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-slate-950 rounded-2xl border border-cyan-500/30 space-y-2">
+                    <h4 className="text-sm font-black text-white flex items-center gap-2">
+                      <GitBranch className="w-4 h-4 text-cyan-400" />
+                      2. The 8K Strategy: Cascaded Super-Resolution
+                    </h4>
+                    <p>
+                      Generating 8K directly is computationally prohibitive ($O(N^2)$ spatial-temporal attention). LEO implements a <strong>3-Stage Cascade</strong> decoupling core semantics from high-frequency texture hallucination:
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    {cascadeStages.map((stg, i) => (
+                      <div key={stg.stageId} className="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black text-white flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full bg-purple-600 text-white flex items-center justify-center text-[10px]">
+                              {i + 1}
+                            </span>
+                            {stg.name}
+                          </span>
+                          <span className="font-mono text-cyan-400 text-[11px] font-bold">
+                            {stg.outputResolution} ({stg.megapixelsPerFrame} MP/frame)
+                          </span>
+                        </div>
+                        <p className="text-slate-400 text-[11px]">{stg.technique}</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-[10px] font-mono text-slate-300">
+                          {Object.entries(stg.keyParameters).map(([k, v]) => (
+                            <div key={k} className="p-2 bg-slate-900 rounded-lg">
+                              <span className="text-slate-500 block">{k}</span>
+                              <span className="text-amber-300 font-bold">{String(v)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: SYNTHETIC DATA & VLM */}
+              {blueprintActiveTab === 'vlm' && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-slate-950 rounded-2xl border border-amber-500/30 space-y-2">
+                    <h4 className="text-sm font-black text-white flex items-center gap-2">
+                      <Wand2 className="w-4 h-4 text-amber-400" />
+                      3. Data Pipeline: The "Synthetic" Edge
+                    </h4>
+                    <p>
+                      Raw internet text captions are poor and lack physical scene details. Modern DiTs achieve superhuman visual fidelity through <strong>VLM Synthetic Dense Re-captioning</strong>.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="p-4 bg-slate-950/70 border border-slate-800 rounded-2xl space-y-2">
+                      <h5 className="font-bold text-white text-xs">Visual Language Models (VLMs)</h5>
+                      <p className="text-[11px] text-slate-400 leading-relaxed">
+                        Multimodal models (Gemini Vision / GPT-4V) watch millions of video clips and author dense, camera-accurate captions detailing sensor formats (ARRI Alexa 65), lens millimeter, volumetric god-rays, atmospheric scattering, and surface roughness.
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-slate-950/70 border border-slate-800 rounded-2xl space-y-2">
+                      <h5 className="font-bold text-white text-xs">Curated 10M+ Native 4K/8K Dataset</h5>
+                      <p className="text-[11px] text-slate-400 leading-relaxed">
+                        Trained on 10M+ high-motion cinematic sequences. Upscaler A and Upscaler B are fine-tuned on native 4K and 8K master plates to learn authentic high-frequency micro-textures (skin pores, fabric thread weave, water ripples).
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 4: INFRASTRUCTURE STACK */}
+              {blueprintActiveTab === 'stack' && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-slate-950 rounded-2xl border border-emerald-500/30 space-y-2">
+                    <h4 className="text-sm font-black text-white flex items-center gap-2">
+                      <Server className="w-4 h-4 text-emerald-400" />
+                      4. Infrastructure &amp; Serving Stack
+                    </h4>
+                    <p>
+                      Generating 8K master streams requires high-throughput distributed parallel execution.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
+                    <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
+                      <span className="font-bold text-cyan-400">Training Hardware</span>
+                      <p className="text-slate-400">Clusters of NVIDIA H100 / B200 GPUs with FSDP (Fully Sharded Data Parallel) splitting weights, gradients, and optimizer states across nodes.</p>
+                    </div>
+
+                    <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
+                      <span className="font-bold text-purple-400">Inference Engine</span>
+                      <p className="text-slate-400">TensorRT-LLM and vLLM optimized for 3D Spacetime FlashAttention-3 with FP8 quantization and paged KV cache management.</p>
+                    </div>
+
+                    <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
+                      <span className="font-bold text-amber-400">Backend Queue</span>
+                      <p className="text-slate-400">Celery + Redis distributed async worker queue to manage long-running multi-minute neural synthesis without HTTP timeouts.</p>
+                    </div>
+
+                    <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
+                      <span className="font-bold text-emerald-400">Storage &amp; CDN</span>
+                      <p className="text-slate-400">Google Cloud Storage (GCS) Multi-Region with Cloud CDN packaging ProRes 4444 XQ and AV1 HDR streams for instant global delivery.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 5: OPEN-SOURCE BENCHMARKS */}
+              {blueprintActiveTab === 'opensource' && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
+                    <h4 className="text-sm font-black text-white flex items-center gap-2">
+                      <Boxes className="w-4 h-4 text-purple-400" />
+                      5. Open-Source Comparative Architecture Matrix
+                    </h4>
+                    <p className="text-slate-400 text-[11px]">
+                      Benchmark comparing LEO 8K Cascaded DiT against prominent open-source video generation models:
+                    </p>
+                  </div>
+
+                  <div className="overflow-x-auto border border-slate-800 rounded-2xl">
+                    <table className="w-full text-left text-[11px]">
+                      <thead className="bg-slate-950 border-b border-slate-800 text-slate-400 font-mono">
+                        <tr>
+                          <th className="p-3">Model</th>
+                          <th className="p-3">Architecture</th>
+                          <th className="p-3">Max Output</th>
+                          <th className="p-3">Spacetime Patches</th>
+                          <th className="p-3">Flow Matching</th>
+                          <th className="p-3">Consistency</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/80">
+                        {OPEN_SOURCE_BENCHMARKS.map((m) => (
+                          <tr key={m.name} className={m.name.includes('LEO') ? 'bg-purple-950/20 font-bold' : ''}>
+                            <td className="p-3 text-white flex items-center gap-1.5">
+                              {m.name.includes('LEO') && <Flame className="w-3.5 h-3.5 text-amber-400" />}
+                              {m.name}
+                            </td>
+                            <td className="p-3 text-slate-300">{m.architecture}</td>
+                            <td className="p-3 font-mono text-cyan-300">{m.maxResolution}</td>
+                            <td className="p-3">{m.spacetimePatches ? '✅ Yes' : '❌ No'}</td>
+                            <td className="p-3">{m.flowMatching ? '✅ Yes' : '❌ No'}</td>
+                            <td className="p-3 font-mono text-emerald-400">{m.temporalConsistencyScore}/100</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 6: PYTORCH & STACK CODE */}
+              {blueprintActiveTab === 'code' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-black text-white flex items-center gap-2">
+                      <Terminal className="w-4 h-4 text-cyan-400" />
+                      Production PyTorch Cascaded 8K Pipeline Code
+                    </h4>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(getPyTorchCascadedPipelineCode());
+                        setCopiedBlueprintCode('pytorch');
+                        setTimeout(() => setCopiedBlueprintCode(null), 2500);
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 transition-colors"
+                    >
+                      {copiedBlueprintCode === 'pytorch' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedBlueprintCode === 'pytorch' ? 'Code Copied!' : 'Copy PyTorch Code'}
+                    </button>
+                  </div>
+
+                  <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 font-mono text-[11px] text-slate-300 max-h-72 overflow-y-auto">
+                    <pre>{getPyTorchCascadedPipelineCode()}</pre>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2">
+                    <h4 className="text-sm font-black text-white flex items-center gap-2">
+                      <FileCode className="w-4 h-4 text-emerald-400" />
+                      H100/B200 FSDP &amp; TensorRT-LLM Cluster Config (YAML)
+                    </h4>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(getInfrastructureStackConfig());
+                        setCopiedBlueprintCode('yaml');
+                        setTimeout(() => setCopiedBlueprintCode(null), 2500);
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1.5 transition-colors"
+                    >
+                      {copiedBlueprintCode === 'yaml' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedBlueprintCode === 'yaml' ? 'Config Copied!' : 'Copy Cluster YAML'}
+                    </button>
+                  </div>
+
+                  <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 font-mono text-[11px] text-slate-300 max-h-56 overflow-y-auto">
+                    <pre>{getInfrastructureStackConfig()}</pre>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between">
+              <span className="text-[11px] text-slate-400 font-mono">
+                LEO 8K Cascaded DiT • 7680×4320 @ 60fps • 33.18 MP/frame
+              </span>
+              <button
+                onClick={() => setIsBlueprintModalOpen(false)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition-colors"
+              >
+                Close Blueprint
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

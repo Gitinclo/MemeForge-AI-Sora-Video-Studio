@@ -136,6 +136,7 @@ export function calculateVideoComputeMetrics(hours: number, frameRate: number = 
     '720p HD': 1.5,
     '1080p FHD': 3.5,
     '4K Ultra': 8.0,
+    '8K Cinema Master': 22.5,
   };
   const gbPerHour = gbPerHourMap[resolution] || 5.0;
   const estimatedStorageGb = Math.round(validHours * gbPerHour * 10) / 10;
