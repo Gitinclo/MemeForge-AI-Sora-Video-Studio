@@ -1,6 +1,6 @@
-# MemeForge AI, Sora Video & Cinema VFX Studio
+# MemeForge AI, LEO Video & Cinema VFX Studio
 
-> **Next-generation multimedia studio combining multimodal AI meme creation, Sora/Veo video synthesis up to 100 hours, native Android (APK & AAB) packaging, localized India UPI & Enterprise subscriptions, and a cinema/VFX-grade editing architecture capable of 32K (32000×32000), 1000 FPS, 32-bit float color, and 192 kHz Fairlight audio.**
+> **Next-generation multimedia studio combining multimodal AI meme creation, LEO/Veo video synthesis up to 100 hours, native Android (APK & AAB) packaging, localized India UPI & Enterprise subscriptions, and a cinema/VFX-grade editing architecture capable of 32K (32000×32000), 1000 FPS, 32-bit float color, and 192 kHz Fairlight audio.**
 
 [![Gemini](https://img.shields.io/badge/Gemini%20API-3.8%20Flash%20%7C%204%20Argon-7c3aed?style=for-the-badge&logo=google)](https://ai.google.dev/)
 [![Cinema VFX 32K](https://img.shields.io/badge/Cinema%20VFX-32K%20%7C%201000%20FPS-06b6d4?style=for-the-badge)](https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API)
@@ -17,7 +17,7 @@
 
 1. **Meme Studio**: Multimodal Gemini Vision auto-captioning, live draggable typography canvas, 16+ trending vector templates, sticker overlays, and synthesized multi-track audio layers.
 2. **Marketplace & Crypto/UPI**: Buy and sell viral templates using Web3 wallets (ETH, SOL, MEME, USDT) or Indian UPI AutoPay (GPay, PhonePe, Paytm, BHIM).
-3. **Sora / Veo 3 Video Studio**: AI video generation scaling from 15 seconds up to **100 hours maximum duration** in 4K Ultra with camera motion controls and prompt expansion.
+3. **LEO / Veo 3 Video Studio**: AI video generation scaling from 15 seconds up to **100 hours maximum duration** in 4K Ultra with camera motion controls and prompt expansion.
 4. **Cinema VFX Studio Master**: A hybrid workstation combining the best of **Adobe Premiere Pro** (multi-track precision editing & trimming), **DaVinci Resolve Studio** (ACES 2.0 color science, 3D LUTs & real-time scopes), and **Fusion / Fairlight** (AI node effects & 192 kHz 32-bit float audio).
 5. **Team Hub & Subscriptions**: 50-seat team workspace with granular RBAC permissions, version rollback snapshots, encrypted asset vaults, and localized Indian subscriptions (Rs. 999/mo Individual Pro & Rs. 99,999/mo Corporate Enterprise).
 6. **Mobile Packaging & Security**: Offline Android APK & AAB bundle generation with strict security policies protecting developer credentials.
@@ -148,7 +148,7 @@ MemeForge features dedicated Indian pricing and payment workflows tailored for i
 ### 1. Installation
 ```bash
 git clone <repository-url>
-cd memeforge-ai-sora-video-studio
+cd memeforge-ai-leo-video-studio
 npm install
 ```
 
@@ -169,7 +169,7 @@ npm test
 Runs the full 31-test suite across 6 test suites covering:
 - Audio synthesis PCM generation and WAV header encoding (`memeAudioEngine.test.ts`)
 - Meme style presets and text layer manipulation (`memeStylePresets.test.ts`)
-- Sora video duration clamping and compute metrics (`videoDurationUtils.test.ts`)
+- LEO video duration clamping and compute metrics (`videoDurationUtils.test.ts`)
 - Subscription limits (Free vs India Pro Rs. 999 vs Company Rs. 99,999), 10 isolated workspaces, 50 TB Cloud Vault, and Project Management queue metrics (`subscriptionUtils.test.ts`)
 - Cinema VFX 32K Gigapixel math, 1000 FPS 64-bit timebase precision, and 192 kHz audio sample rates (`cinemaEngine.test.ts`)
 - Meme canvas text wrapping, category/mood filtering, and Web3/UPI wallet balance logic (`tests/meme-logic.test.ts`)
@@ -257,7 +257,7 @@ All Gemini model operations are handled server-side via Express routes:
 │   │   ├── MemeTemplateSelector.tsx  # Vector meme templates catalog selector
 │   │   ├── MemeToolbar.tsx           # Text styling, outline, font family & filter controls
 │   │   ├── PWAInstallButton.tsx      # Progressive Web App install prompt banner
-│   │   ├── SoraStudioTab.tsx         # Sora/Veo video studio with up to 100-hour duration
+│   │   ├── LeoStudioTab.tsx          # LEO/Veo video studio with up to 100-hour duration
 │   │   ├── SubscriptionModal.tsx     # India UPI (Rs. 999) & Enterprise (Rs. 99,999) billing
 │   │   └── TeamWorkspaceTab.tsx      # Multi-workspace, 50 TB Vault, and Project Management
 │   ├── data/
@@ -296,7 +296,7 @@ All Gemini model operations are handled server-side via Express routes:
 
 ### Public Code Index & Reference Hub Compliance
 Public code indexing services and AI coding reference hubs (such as XERJ, Copus Hub, or similar platforms) that index this repository are welcome under the **Apache License, Version 2.0**, provided that:
-1. Full author attribution (`Gitinclo`) and the canonical repository URL (`https://github.com/Gitinclo/MemeForge-AI-Sora-Video-Studio`) are maintained.
+1. Full author attribution (`Gitinclo`) and the canonical repository URL (`https://github.com/Gitinclo/MemeForge-AI-LEO-Video-Studio`) are maintained.
 2. The `LICENSE` and `NOTICE` files are preserved in their entirety alongside any extracted reference passages.
 3. No code is relicensed under proprietary or conflicting terms.
 4. Per Section 6, indexing does not imply official endorsement or affiliation.

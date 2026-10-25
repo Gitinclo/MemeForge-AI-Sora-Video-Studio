@@ -3,13 +3,13 @@
 **Last Updated:** October 22, 2026  
 **Effective Date:** October 22, 2026
 
-PLEASE READ THESE TERMS AND CONDITIONS CAREFULLY BEFORE USING MEMEFORGE AI, SORA VIDEO & CINEMA VFX STUDIO.
+PLEASE READ THESE TERMS AND CONDITIONS CAREFULLY BEFORE USING MEMEFORGE AI, LEO VIDEO & CINEMA VFX STUDIO.
 
 ---
 
 ## 1. Acceptance of Terms
 
-By accessing, installing, downloading, or using the **MemeForge AI, Sora Video & Cinema VFX Studio** application, Progressive Web App (PWA), or associated mobile packages (collectively, the "Application" or "Service"), you agree to be bound by these Terms and Conditions ("Terms"). If you do not agree to these Terms, you must not access or use the Application.
+By accessing, installing, downloading, or using the **MemeForge AI, LEO Video & Cinema VFX Studio** application, Progressive Web App (PWA), or associated mobile packages (collectively, the "Application" or "Service"), you agree to be bound by these Terms and Conditions ("Terms"). If you do not agree to these Terms, you must not access or use the Application.
 
 If you are using the Application on behalf of a company, organization, or legal entity (such as under the *Team / Company Enterprise License*), you represent and warrant that you have the authority to bind that entity to these Terms.
 

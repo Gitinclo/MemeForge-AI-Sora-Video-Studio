@@ -37,14 +37,14 @@ import {
   canAccessFrameRate,
 } from '../utils/subscriptionUtils';
 
-interface SoraStudioTabProps {
+interface LeoStudioTabProps {
   onMemeToVideoPrompt?: (promptText: string) => void;
   subscription?: UserSubscription;
   onOpenSubscriptionModal?: () => void;
   onOpenCinemaVfx?: () => void;
 }
 
-export const SoraStudioTab: React.FC<SoraStudioTabProps> = ({
+export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
   onMemeToVideoPrompt,
   subscription,
   onOpenSubscriptionModal,
@@ -233,7 +233,7 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Top Banner / Sora Specs Bar */}
+      {/* Top Banner / LEO Specs Bar */}
       <div className="p-4 sm:p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -242,7 +242,7 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = ({
             </span>
             <div>
               <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-                <span>Sora Video Studio</span>
+                <span>LEO Video Studio</span>
                 <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500 via-indigo-500 to-amber-500 text-white uppercase tracking-wider flex items-center gap-1 shadow-sm">
                   <Flame className="w-3 h-3 text-amber-300" />
                   Veo 3.1 • 100h Max
@@ -453,7 +453,7 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = ({
           </div>
         </div>
 
-        {/* Right: Sora Production Parameters (5 cols) */}
+        {/* Right: LEO Production Parameters (5 cols) */}
         <div className="lg:col-span-5 space-y-4">
           <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
             <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
@@ -845,7 +845,7 @@ export const SoraStudioTab: React.FC<SoraStudioTabProps> = ({
               ) : (
                 <>
                   <Video className="w-5 h-5" />
-                  <span>Generate {formatDurationLabel(spec.durationHours)} Scene with Sora / Veo 3</span>
+                  <span>Generate {formatDurationLabel(spec.durationHours)} Scene with LEO / Veo 3</span>
                 </>
               )}
             </button>

@@ -3,7 +3,7 @@ import { MemeCanvas } from './components/MemeCanvas';
 import { MemeToolbar } from './components/MemeToolbar';
 import { MemeTemplateSelector } from './components/MemeTemplateSelector';
 import { MagicCaptionModal } from './components/MagicCaptionModal';
-import { SoraStudioTab } from './components/SoraStudioTab';
+import { LeoStudioTab } from './components/LeoStudioTab';
 import { TeamWorkspaceTab } from './components/TeamWorkspaceTab';
 import { AiDirectorChatModal } from './components/AiDirectorChatModal';
 import { AndroidPackageModal } from './components/AndroidPackageModal';
@@ -64,7 +64,7 @@ import {
 } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'meme' | 'sora' | 'cinema' | 'team' | 'market'>('meme');
+  const [activeTab, setActiveTab] = useState<'meme' | 'leo' | 'cinema' | 'team' | 'market'>('meme');
   const [isAndroidModalOpen, setIsAndroidModalOpen] = useState(false);
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
   const [subscriptionModalCategory, setSubscriptionModalCategory] = useState<'individual' | 'company'>('individual');
@@ -852,7 +852,7 @@ export default function App() {
               </span>
             </div>
             <p className="text-[11px] text-slate-400 hidden sm:block">
-              Magic Caption • Live Editor • Crypto &amp; UPI Marketplace • Sora Video
+              Magic Caption • Live Editor • Crypto &amp; UPI Marketplace • LEO Video
             </p>
           </div>
         </div>
@@ -884,15 +884,15 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => setActiveTab('sora')}
+            onClick={() => setActiveTab('leo')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-              activeTab === 'sora'
+              activeTab === 'leo'
                 ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <Film className="w-3.5 h-3.5" />
-            <span>Sora Video</span>
+            <span>LEO Video</span>
           </button>
 
           <button
@@ -1211,9 +1211,9 @@ export default function App() {
           />
         )}
 
-        {/* TAB 3: SORA VIDEO STUDIO */}
-        {activeTab === 'sora' && (
-          <SoraStudioTab
+        {/* TAB 3: LEO VIDEO STUDIO */}
+        {activeTab === 'leo' && (
+          <LeoStudioTab
             subscription={subscription}
             onOpenSubscriptionModal={() => setIsSubscriptionModalOpen(true)}
             onOpenCinemaVfx={() => setActiveTab('cinema')}

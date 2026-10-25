@@ -178,7 +178,7 @@ export const CinemaVfxEditorTab: React.FC<CinemaVfxEditorTabProps> = ({
         {
           id: 'c-v1-1',
           trackId: 'v1',
-          name: 'Sora Omnimax Hyperlapse (1000 FPS Optical Flow)',
+          name: 'LEO Omnimax Hyperlapse (1000 FPS Optical Flow)',
           startTicks: 0n,
           durationTicks: 10n * TICKS_PER_SECOND_64,
           sourceStartTicks: 0n,

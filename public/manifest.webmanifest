@@ -2,7 +2,7 @@
   "id": "/",
   "name": "MemeForge AI Studio",
   "short_name": "MemeForge",
-  "description": "AI-powered meme generator with Magic Caption vision analysis, live font/color editor, trending templates, and Sora cinematic video studio.",
+  "description": "AI-powered meme generator with Magic Caption vision analysis, live font/color editor, trending templates, and LEO cinematic video studio.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

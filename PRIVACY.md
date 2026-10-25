@@ -3,7 +3,7 @@
 **Last Updated:** October 22, 2026  
 **Effective Date:** October 22, 2026
 
-Welcome to **MemeForge AI, Sora Video & Cinema VFX Studio** ("we," "our," "us," or the "Application"). We are committed to protecting your personal privacy, transparently disclosing our data practices, and giving you complete control over your content.
+Welcome to **MemeForge AI, LEO Video & Cinema VFX Studio** ("we," "our," "us," or the "Application"). We are committed to protecting your personal privacy, transparently disclosing our data practices, and giving you complete control over your content.
 
 This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you access or use the MemeForge web application, Progressive Web App (PWA), and compiled Android mobile packages.
 

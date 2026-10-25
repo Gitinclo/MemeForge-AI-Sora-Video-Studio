@@ -1,4 +1,4 @@
-# Contributing to MemeForge AI, Sora Video & Cinema VFX Studio
+# Contributing to MemeForge AI, LEO Video & Cinema VFX Studio
 
 Thank you for your interest in contributing to **MemeForge AI Studio**! We welcome contributions from developers, designers, video engineers, and community creators worldwide.
 
@@ -35,8 +35,8 @@ Ensure you have the following installed locally:
 
 1. **Fork and Clone the Repository**:
    ```bash
-   git clone https://github.com/<your-username>/MemeForge-AI-Sora-Video-Studio.git
-   cd MemeForge-AI-Sora-Video-Studio
+   git clone https://github.com/<your-username>/MemeForge-AI-LEO-Video-Studio.git
+   cd MemeForge-AI-LEO-Video-Studio
    ```
 
 2. **Install Dependencies**:

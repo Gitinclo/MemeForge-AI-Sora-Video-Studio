@@ -2,7 +2,7 @@
 set -e
 
 # ==============================================================================
-# MemeForge AI & Sora Video Studio - Android Build Automation (APK & AAB)
+# MemeForge AI & LEO Video Studio - Android Build Automation (APK & AAB)
 # ==============================================================================
 
 echo "======================================================================"

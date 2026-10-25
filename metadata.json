@@ -1,6 +1,6 @@
 {
-  "name": "MemeForge AI & Sora Video Studio",
-  "description": "AI-powered meme generator with Magic Caption vision analysis, live font/color editor, trending templates, and Sora cinematic video studio.",
+  "name": "MemeForge AI & LEO Video Studio",
+  "description": "AI-powered meme generator with Magic Caption vision analysis, live font/color editor, trending templates, and LEO cinematic video studio.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

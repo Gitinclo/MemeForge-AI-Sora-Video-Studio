@@ -95,8 +95,8 @@ export const TeamWorkspaceTab: React.FC<TeamWorkspaceTabProps> = ({
     {
       id: 'job-101',
       workspaceId: 'ws-prod-1',
-      title: 'Sora 4K Brand Film - Episode 3',
-      format: 'Sora 4K ProRes 422 HQ',
+      title: 'LEO 4K Brand Film - Episode 3',
+      format: 'LEO 4K ProRes 422 HQ',
       resolution: '3840×2160 (4K)',
       fps: 60,
       duration: '04:30',
@@ -167,7 +167,7 @@ export const TeamWorkspaceTab: React.FC<TeamWorkspaceTabProps> = ({
     {
       id: 'job-105',
       workspaceId: 'ws-prod-1',
-      title: '100-Hour Continuous Sora Ambient Stream',
+      title: '100-Hour Continuous LEO Ambient Stream',
       format: 'AV1 Hardware Acceleration',
       resolution: '4K Ultra HD',
       fps: 60,
@@ -211,10 +211,10 @@ export const TeamWorkspaceTab: React.FC<TeamWorkspaceTabProps> = ({
       role: 'Owner',
       avatarColor: 'bg-amber-500',
       status: 'rendering',
-      currentActivity: 'Directing Sora 4K Episode 3 GPU render pipeline',
+      currentActivity: 'Directing LEO 4K Episode 3 GPU render pipeline',
       activeWorkspaceId: 'ws-prod-1',
       activeWorkspaceName: 'Master Production Suite',
-      currentClipOrProject: 'Sora 4K Brand Film - Episode 3',
+      currentClipOrProject: 'LEO 4K Brand Film - Episode 3',
       lastActive: 'Active now',
       assignedNode: 'GPU Node #1 (RTX 4090 D)',
     },
@@ -300,7 +300,7 @@ export const TeamWorkspaceTab: React.FC<TeamWorkspaceTabProps> = ({
       userRole: 'Owner',
       userAvatarColor: 'bg-amber-500',
       action: 'Dispatched GPU render',
-      target: 'Sora 4K Brand Film - Episode 3 (GPU Node #1)',
+      target: 'LEO 4K Brand Film - Episode 3 (GPU Node #1)',
       category: 'production_queue',
       timestamp: '2m ago',
       statusTag: '78% Rendered',
@@ -409,7 +409,7 @@ export const TeamWorkspaceTab: React.FC<TeamWorkspaceTabProps> = ({
 
   // Enqueue new job form fields
   const [newJobTitle, setNewJobTitle] = useState('');
-  const [newJobFormat, setNewJobFormat] = useState('Sora 4K ProRes 422 HQ');
+  const [newJobFormat, setNewJobFormat] = useState('LEO 4K ProRes 422 HQ');
   const [newJobResolution, setNewJobResolution] = useState('3840×2160 (4K)');
   const [newJobFps, setNewJobFps] = useState(60);
   const [newJobDuration, setNewJobDuration] = useState('02:30');
@@ -430,7 +430,7 @@ export const TeamWorkspaceTab: React.FC<TeamWorkspaceTabProps> = ({
       id: 'ws-prod-1',
       name: 'Master Production Suite',
       slug: 'master-prod',
-      description: 'Main collaborative workspace for studio releases, Sora 4K videos and viral memes',
+      description: 'Main collaborative workspace for studio releases, LEO 4K videos and viral memes',
       assignedGpuNodes: 4,
       membersCount: 4,
       activeProjectsCount: 12,
@@ -501,7 +501,7 @@ export const TeamWorkspaceTab: React.FC<TeamWorkspaceTabProps> = ({
     {
       id: 'va-2',
       workspaceId: 'ws-prod-1',
-      name: 'sora_hyperlapse_100h_prores_4444_xq.mov',
+      name: 'leo_hyperlapse_100h_prores_4444_xq.mov',
       size: '482.1 GB',
       sizeBytes: 517652758528,
       type: 'ProRes 4444 XQ',
@@ -912,7 +912,7 @@ export const TeamWorkspaceTab: React.FC<TeamWorkspaceTabProps> = ({
             className="px-4 py-2.5 bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-600 hover:opacity-95 text-white text-xs font-black rounded-xl shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 shrink-0 transition-transform active:scale-95"
           >
             <Building2 className="w-4 h-4" />
-            <span>Upgrade Team (₹99,999/mo)</span>
+            <span>Upgrade Team (Rs. 99,999/mo)</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -1200,7 +1200,7 @@ export const TeamWorkspaceTab: React.FC<TeamWorkspaceTabProps> = ({
                   <span>Active Video Production Queues ({filteredJobs.length} Jobs)</span>
                 </h4>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  High-throughput GPU render farm dispatching 4K Sora masters, 32K optical flow plates, and 192 kHz audio
+                  High-throughput GPU render farm dispatching 4K LEO masters, 32K optical flow plates, and 192 kHz audio
                 </p>
               </div>
 
@@ -2389,7 +2389,7 @@ export const TeamWorkspaceTab: React.FC<TeamWorkspaceTabProps> = ({
                   required
                   value={newJobTitle}
                   onChange={(e) => setNewJobTitle(e.target.value)}
-                  placeholder="e.g. Sora 4K Cinematic Sequence - Episode 4"
+                  placeholder="e.g. LEO 4K Cinematic Sequence - Episode 4"
                   className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
@@ -2424,7 +2424,7 @@ export const TeamWorkspaceTab: React.FC<TeamWorkspaceTabProps> = ({
                     }}
                     className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-blue-500"
                   >
-                    <option value="Sora 4K ProRes 422 HQ">Sora 4K ProRes 422 HQ (60fps)</option>
+                    <option value="LEO 4K ProRes 422 HQ">LEO 4K ProRes 422 HQ (60fps)</option>
                     <option value="Cinema VFX 32K Optical Flow">Cinema VFX 32K Optical Flow (1000fps)</option>
                     <option value="Fairlight 192kHz Spatial Master">Fairlight 192kHz Dolby Atmos Spatial</option>
                     <option value="TikTok / Reels 1080x1920 HEVC">TikTok / Reels 1080x1920 10-bit HEVC</option>

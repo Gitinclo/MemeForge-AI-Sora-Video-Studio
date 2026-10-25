@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-We actively maintain and provide security updates for the following versions of **MemeForge AI, Sora Video & Cinema VFX Studio**:
+We actively maintain and provide security updates for the following versions of **MemeForge AI, LEO Video & Cinema VFX Studio**:
 
 | Version | Supported          | Security Status |
 | :------ | :----------------- | :-------------- |

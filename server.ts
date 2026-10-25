@@ -297,7 +297,7 @@ app.post('/api/expand-prompt', async (req: Request, res: Response) => {
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3.1-flash-lite',
-      contents: `Enhance this short video / meme prompt into an ultra-vivid cinematic prompt for Sora / Veo 3 under 35 words: "${prompt}"`,
+      contents: `Enhance this short video / meme prompt into an ultra-vivid cinematic prompt for LEO / Veo 3 under 35 words: "${prompt}"`,
       config: {
         temperature: 0.5,
       },
