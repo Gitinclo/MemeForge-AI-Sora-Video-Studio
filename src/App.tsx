@@ -12,6 +12,7 @@ import { MarketplaceCheckoutModal } from './components/MarketplaceCheckoutModal'
 import { SubscriptionModal } from './components/SubscriptionModal';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { CinemaVfxEditorTab } from './components/CinemaVfxEditorTab';
+import { YouTubePublishTab } from './components/YouTubePublishTab';
 import { LegalDocsModal } from './components/LegalDocsModal';
 import { MEME_TEMPLATES } from './data/memeTemplates';
 import { UserSubscription } from './types/subscription';
@@ -61,10 +62,13 @@ import {
   Crown,
   Building2,
   Boxes,
+  Youtube,
 } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'meme' | 'leo' | 'cinema' | 'team' | 'market'>('meme');
+  const [activeTab, setActiveTab] = useState<'meme' | 'leo' | 'cinema' | 'youtube' | 'team' | 'market'>('meme');
+  const [canvasSnapshotForYouTube, setCanvasSnapshotForYouTube] = useState<string | null>(null);
+  const [leoPublishContext, setLeoPublishContext] = useState<{ title: string; prompt: string } | null>(null);
   const [isAndroidModalOpen, setIsAndroidModalOpen] = useState(false);
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
   const [subscriptionModalCategory, setSubscriptionModalCategory] = useState<'individual' | 'company'>('individual');
@@ -746,6 +750,18 @@ export default function App() {
     }
   };
 
+  // Capture canvas snapshot and open YouTube Publish Tab
+  const handleOpenYouTubePublishFromMeme = () => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      (canvas as any).drawCleanForExport?.();
+      const dataUrl = canvas.toDataURL('image/png', 0.95);
+      (canvas as any).restoreInteractiveSelection?.();
+      setCanvasSnapshotForYouTube(dataUrl);
+    }
+    setActiveTab('youtube');
+  };
+
   const handleUpdateAudioConfig = (updates: Partial<MemeAudioConfig>) => {
     setAudioConfig((prev) => ({ ...prev, ...updates }));
   };
@@ -906,6 +922,21 @@ export default function App() {
             <Boxes className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Cinema VFX (32K)</span>
             <span className="sm:hidden">32K VFX</span>
+          </button>
+
+          <button
+            onClick={() => {
+              handleOpenYouTubePublishFromMeme();
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              activeTab === 'youtube'
+                ? 'bg-red-600 text-white shadow-md shadow-red-600/30'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Youtube className="w-3.5 h-3.5 text-red-500" />
+            <span className="hidden sm:inline">YouTube</span>
+            <span className="sm:hidden">YT</span>
           </button>
 
           <button
@@ -1130,6 +1161,15 @@ export default function App() {
                     </button>
 
                     <button
+                      onClick={handleOpenYouTubePublishFromMeme}
+                      className="px-3.5 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-600 text-white text-xs font-black rounded-xl shadow-md shadow-red-600/30 transition-all flex items-center gap-1.5"
+                      title="Publish Meme to YouTube with Gemini 4 Argon"
+                    >
+                      <Youtube className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Publish to YouTube</span>
+                    </button>
+
+                    <button
                       onClick={() => handleDownload('png')}
                       className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold rounded-xl shadow-md shadow-amber-500/20 transition-all flex items-center gap-1.5"
                     >
@@ -1217,6 +1257,10 @@ export default function App() {
             subscription={subscription}
             onOpenSubscriptionModal={() => setIsSubscriptionModalOpen(true)}
             onOpenCinemaVfx={() => setActiveTab('cinema')}
+            onOpenYouTubePublish={(title, prompt) => {
+              if (title && prompt) setLeoPublishContext({ title, prompt });
+              setActiveTab('youtube');
+            }}
           />
         )}
 
@@ -1225,6 +1269,18 @@ export default function App() {
           <CinemaVfxEditorTab
             subscription={subscription}
             onOpenSubscriptionModal={() => setIsSubscriptionModalOpen(true)}
+          />
+        )}
+
+        {/* TAB 5: PUBLISH TO YOUTUBE (DATA API v3, GEMINI 4 ARGON & WORKMANAGER) */}
+        {activeTab === 'youtube' && (
+          <YouTubePublishTab
+            currentMemeCanvasSnapshot={canvasSnapshotForYouTube || currentImageSrc}
+            currentMemeTitle={activeTemplate?.name || 'Meme Masterpiece'}
+            leoVideoTitle={leoPublishContext?.title || 'Neon Odyssey: Hyper-Reality'}
+            leoVideoPrompt={leoPublishContext?.prompt || 'A cyberpunk courier gliding on an anti-gravity hoverboard through rain-slicked Tokyo skyscrapers, neon reflections, 4K detail'}
+            onOpenMemeStudio={() => setActiveTab('meme')}
+            onOpenLeoStudio={() => setActiveTab('leo')}
           />
         )}
 

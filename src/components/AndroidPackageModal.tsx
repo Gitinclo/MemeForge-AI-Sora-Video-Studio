@@ -15,7 +15,15 @@ import {
   Layers,
   ArrowRight,
   ExternalLink,
+  Youtube,
+  Zap,
 } from 'lucide-react';
+import {
+  getKotlinWorkManagerCode,
+  getKotlinArgonGeneratorCode,
+  getKotlinDependenciesCode,
+  getAndroidManifestCode,
+} from '../utils/youtubeUploadUtils';
 
 interface AndroidPackageModalProps {
   isOpen: boolean;
@@ -26,7 +34,7 @@ export const AndroidPackageModal: React.FC<AndroidPackageModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const [activeTab, setActiveTab] = useState<'aab' | 'apk' | 'keystore'>('aab');
+  const [activeTab, setActiveTab] = useState<'aab' | 'apk' | 'keystore' | 'youtube_worker'>('aab');
   const [isBuilding, setIsBuilding] = useState(false);
   const [buildProgress, setBuildProgress] = useState(0);
   const [buildLogs, setBuildLogs] = useState<string[]>([
@@ -189,6 +197,17 @@ echo "Build Complete! Check android/app/build/outputs/"
             <Key className="w-3.5 h-3.5" />
             Signing &amp; Keystore
           </button>
+          <button
+            onClick={() => setActiveTab('youtube_worker')}
+            className={`px-4 py-2 border-b-2 text-xs font-bold transition-all flex items-center gap-1.5 ${
+              activeTab === 'youtube_worker'
+                ? 'border-red-500 text-red-400'
+                : 'border-transparent text-slate-400 hover:text-white'
+            }`}
+          >
+            <Youtube className="w-3.5 h-3.5 text-red-400" />
+            YouTube WorkManager (Kotlin)
+          </button>
         </div>
 
         {/* Content Body */}
@@ -348,6 +367,55 @@ echo "Build Complete! Check android/app/build/outputs/"
                   <li><code className="text-slate-200">KEY_ALIAS</code>: alias name (default: <code className="text-cyan-400">upload</code>)</li>
                   <li><code className="text-slate-200">KEY_PASSWORD</code>: password for key alias</li>
                 </ul>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: YouTube WorkManager (Kotlin) */}
+          {activeTab === 'youtube_worker' && (
+            <div className="space-y-4">
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <Youtube className="w-4 h-4 text-red-500" />
+                    Android Jetpack WorkManager YouTube Uploader (Kotlin)
+                  </span>
+                  <span className="text-[10px] font-mono font-bold text-red-400 px-2 py-0.5 rounded bg-red-500/15">
+                    BACKGROUND UPLOAD
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Survives application closes and device reboot with automatic chunked resumption (<code className="text-amber-400">MediaHttpUploader</code>). Analyzes video with <code className="text-amber-400">Gemini 4 Argon</code> to generate viral Title, Description, and Tags before upload.
+                </p>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(getKotlinWorkManagerCode());
+                      setCopiedKey(true);
+                      setTimeout(() => setCopiedKey(false), 2500);
+                    }}
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-500 text-white transition-colors flex items-center gap-1.5"
+                  >
+                    {copiedKey ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedKey ? 'Worker Code Copied!' : 'Copy YouTubeUploadWorker.kt'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(getKotlinDependenciesCode());
+                      setCopiedKey(true);
+                      setTimeout(() => setCopiedKey(false), 2500);
+                    }}
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors flex items-center gap-1.5"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    Copy build.gradle.kts
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl font-mono text-xs text-slate-300 max-h-56 overflow-y-auto">
+                <pre>{getKotlinWorkManagerCode()}</pre>
               </div>
             </div>
           )}

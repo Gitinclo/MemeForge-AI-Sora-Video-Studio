@@ -21,6 +21,7 @@ import {
   Flame,
   Crown,
   Lock,
+  Youtube,
 } from 'lucide-react';
 import {
   MAX_VIDEO_DURATION_HOURS,
@@ -42,6 +43,7 @@ interface LeoStudioTabProps {
   subscription?: UserSubscription;
   onOpenSubscriptionModal?: () => void;
   onOpenCinemaVfx?: () => void;
+  onOpenYouTubePublish?: (title?: string, prompt?: string) => void;
 }
 
 export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
@@ -49,6 +51,7 @@ export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
   subscription,
   onOpenSubscriptionModal,
   onOpenCinemaVfx,
+  onOpenYouTubePublish,
 }) => {
   const [spec, setSpec] = useState<VideoProjectSpec>({
     title: 'Neon Odyssey: Hyper-Reality',
@@ -849,6 +852,19 @@ export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
                 </>
               )}
             </button>
+
+            {/* Quick Publish to YouTube Button */}
+            {onOpenYouTubePublish && (
+              <button
+                type="button"
+                onClick={() => onOpenYouTubePublish(spec.title, spec.prompt)}
+                className="w-full py-2.5 px-4 font-bold text-xs rounded-xl bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/40 flex items-center justify-center gap-2 transition-all hover:text-white"
+                title="Publish LEO Video to YouTube with Gemini 4 Argon Metadata"
+              >
+                <Youtube className="w-4 h-4 text-red-400" />
+                <span>Publish Scene to YouTube (Data API v3)</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
