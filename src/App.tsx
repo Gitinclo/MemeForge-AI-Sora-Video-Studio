@@ -13,6 +13,7 @@ import { SubscriptionModal } from './components/SubscriptionModal';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { CinemaVfxEditorTab } from './components/CinemaVfxEditorTab';
 import { YouTubePublishTab } from './components/YouTubePublishTab';
+import { EnterpriseB2BTab } from './components/EnterpriseB2BTab';
 import { LegalDocsModal } from './components/LegalDocsModal';
 import { MEME_TEMPLATES } from './data/memeTemplates';
 import { UserSubscription } from './types/subscription';
@@ -34,6 +35,10 @@ import {
   stopMemeAudio,
   exportMemeVideoWithAudio,
 } from './utils/memeAudioEngine';
+import {
+  detectImageAspectRatio,
+  createCustomTemplateFromDrop,
+} from './utils/dragDropUtils';
 import {
   Wand2,
   Sparkles,
@@ -63,10 +68,11 @@ import {
   Building2,
   Boxes,
   Youtube,
+  Briefcase,
 } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'meme' | 'leo' | 'cinema' | 'youtube' | 'team' | 'market'>('meme');
+  const [activeTab, setActiveTab] = useState<'meme' | 'enterprise' | 'leo' | 'cinema' | 'youtube' | 'team' | 'market'>('enterprise');
   const [canvasSnapshotForYouTube, setCanvasSnapshotForYouTube] = useState<string | null>(null);
   const [leoPublishContext, setLeoPublishContext] = useState<{ title: string; prompt: string } | null>(null);
   const [isAndroidModalOpen, setIsAndroidModalOpen] = useState(false);
@@ -427,6 +433,64 @@ export default function App() {
     setTextLayers(newLayers);
     setSelectedLayerId(newLayers[0].id);
     recordSnapshot(`Uploaded custom image: ${name}`, newLayers, filter, imageSrc);
+  };
+
+  // Handle direct drag-and-drop of desktop files onto MemeCanvas
+  const handleDropImageAsTemplate = (imageDataUrl: string, fileName: string) => {
+    // 1. Detect image dimensions and apply natural aspect ratio
+    const img = new Image();
+    img.onload = () => {
+      const detected = detectImageAspectRatio(img.width, img.height);
+      setAspectRatio(detected);
+    };
+    img.src = imageDataUrl;
+
+    // 2. Create custom template instance
+    const customTemplate = createCustomTemplateFromDrop(fileName, imageDataUrl);
+    setActiveTemplate(customTemplate);
+    setCurrentImageSrc(imageDataUrl);
+
+    // 3. Reset text layers for clean template placement
+    const newLayers: TextLayer[] = [
+      {
+        id: `top_${Date.now()}`,
+        text: 'TOP TEXT HERE',
+        x: 50,
+        y: 12,
+        fontSize: 44,
+        fontFamily: 'Impact',
+        textColor: '#ffffff',
+        outlineColor: '#000000',
+        outlineWidth: 4,
+        backgroundColor: 'transparent',
+        textAlign: 'center',
+        isUppercase: true,
+        isBold: true,
+        shadow: true,
+        rotation: 0,
+      },
+      {
+        id: `bottom_${Date.now() + 1}`,
+        text: 'BOTTOM TEXT HERE',
+        x: 50,
+        y: 88,
+        fontSize: 44,
+        fontFamily: 'Impact',
+        textColor: '#ffffff',
+        outlineColor: '#000000',
+        outlineWidth: 4,
+        backgroundColor: 'transparent',
+        textAlign: 'center',
+        isUppercase: true,
+        isBold: true,
+        shadow: true,
+        rotation: 0,
+      },
+    ];
+
+    setTextLayers(newLayers);
+    setSelectedLayerId(newLayers[0].id);
+    recordSnapshot(`Dropped desktop template: ${fileName}`, newLayers, filter, imageDataUrl);
   };
 
   // Apply Magic Caption to Meme
@@ -876,6 +940,19 @@ export default function App() {
         {/* Studio Navigation Tabs */}
         <div className="flex items-center p-1 bg-slate-900 rounded-2xl border border-slate-800">
           <button
+            onClick={() => setActiveTab('enterprise')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              activeTab === 'enterprise'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Briefcase className="w-3.5 h-3.5 text-blue-400" />
+            <span className="hidden sm:inline">Enterprise B2B</span>
+            <span className="sm:hidden">B2B</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('meme')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
               activeTab === 'meme'
@@ -1037,6 +1114,18 @@ export default function App() {
 
       {/* Main Studio Viewport */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 space-y-6">
+        {/* TAB 0: ENTERPRISE B2B VIDEO SUITE */}
+        {activeTab === 'enterprise' && (
+          <EnterpriseB2BTab
+            subscription={subscription}
+            onOpenSubscriptionModal={() => setIsSubscriptionModalOpen(true)}
+            onSendPromptToLeoStudio={(prompt) => {
+              setLeoPublishContext({ title: 'Enterprise B2B Commercial', prompt });
+              setActiveTab('leo');
+            }}
+          />
+        )}
+
         {/* TAB 1: MEME GENERATOR & LIVE EDITOR */}
         {activeTab === 'meme' && (
           <div className="space-y-6">
@@ -1053,6 +1142,7 @@ export default function App() {
                   selectedLayerId={selectedLayerId}
                   onSelectLayer={setSelectedLayerId}
                   onUpdateLayerPosition={handleUpdateLayerPosition}
+                  onDropImageAsTemplate={handleDropImageAsTemplate}
                   canvasRefOut={canvasRef}
                   isPlayingAudio={isPlayingAudio}
                   activeAudioName={audioConfig.customAudioName || activeAudioEffect?.name}
@@ -1257,6 +1347,7 @@ export default function App() {
             subscription={subscription}
             onOpenSubscriptionModal={() => setIsSubscriptionModalOpen(true)}
             onOpenCinemaVfx={() => setActiveTab('cinema')}
+            onOpenEnterpriseB2B={() => setActiveTab('enterprise')}
             onOpenYouTubePublish={(title, prompt) => {
               if (title && prompt) setLeoPublishContext({ title, prompt });
               setActiveTab('youtube');

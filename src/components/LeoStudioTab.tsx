@@ -36,6 +36,8 @@ import {
   BookOpen,
   Camera,
   Code,
+  Music,
+  Briefcase,
 } from 'lucide-react';
 import {
   MAX_VIDEO_DURATION_HOURS,
@@ -61,6 +63,7 @@ import {
   getInfrastructureStackConfig,
 } from '../utils/leo8kEngine';
 import { EngineHub2026Modal } from './EngineHub2026Modal';
+import { AiDanceStudioModal } from './AiDanceStudioModal';
 import {
   VideoEngineId,
   VIDEO_ENGINES_2026,
@@ -73,6 +76,7 @@ interface LeoStudioTabProps {
   onOpenSubscriptionModal?: () => void;
   onOpenCinemaVfx?: () => void;
   onOpenYouTubePublish?: (title?: string, prompt?: string) => void;
+  onOpenEnterpriseB2B?: () => void;
 }
 
 export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
@@ -81,6 +85,7 @@ export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
   onOpenSubscriptionModal,
   onOpenCinemaVfx,
   onOpenYouTubePublish,
+  onOpenEnterpriseB2B,
 }) => {
   const [spec, setSpec] = useState<VideoProjectSpec>({
     title: 'Neon Odyssey: Hyper-Reality',
@@ -134,6 +139,9 @@ export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
   const [mhTemporalCoherence, setMhTemporalCoherence] = useState(0.95);
   const [mhDispatchStatus, setMhDispatchStatus] = useState<string | null>(null);
   const [isMhDispatching, setIsMhDispatching] = useState(false);
+
+  // AI Dance Video Maker & Fill-in-the-Blank Modal State
+  const [isAiDanceModalOpen, setIsAiDanceModalOpen] = useState(false);
 
   const totalDurationSec = (spec.durationHours || 100) * 3600;
   const [currentTimecode, setCurrentTimecode] = useState(14400); // 4 hours in default preview
@@ -437,6 +445,28 @@ export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
             <span className="text-cyan-400 text-[11px] font-bold">E2E Encrypted</span>
           </div>
 
+          {onOpenEnterpriseB2B && (
+            <button
+              onClick={onOpenEnterpriseB2B}
+              className="px-3 py-1.5 rounded-2xl bg-gradient-to-r from-blue-600/30 via-indigo-600/30 to-cyan-500/30 hover:from-blue-600/40 hover:to-cyan-500/40 border border-blue-500/50 text-blue-300 hover:text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm"
+              title="Open Enterprise B2B Video Suite (LoRA Product Preservation, Programmatic Sales, Spokespersons)"
+            >
+              <Briefcase className="w-3.5 h-3.5 text-blue-400" />
+              <span>Enterprise B2B</span>
+              <span className="px-1.5 py-0.2 text-[9px] font-extrabold rounded bg-blue-500/30 text-blue-200">LORA &amp; SALES</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => setIsAiDanceModalOpen(true)}
+            className="px-3 py-1.5 rounded-2xl bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-indigo-500/20 hover:from-pink-500/30 hover:to-indigo-500/30 border border-pink-500/40 text-pink-300 hover:text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm"
+            title="Open AI Dance Video Maker & Motion Transfer Studio (DWPose + AnimateAnyone)"
+          >
+            <Music className="w-3.5 h-3.5 text-pink-400" />
+            <span>AI Dance Maker</span>
+            <span className="px-1.5 py-0.2 text-[9px] font-extrabold rounded bg-pink-500/30 text-pink-200">VIRAL DUET</span>
+          </button>
+
           <button
             onClick={() => setIsEngineHubOpen(true)}
             className="px-3 py-1.5 rounded-2xl bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-blue-500/20 hover:from-indigo-500/30 hover:to-blue-500/30 border border-indigo-500/40 text-indigo-300 hover:text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm"
@@ -690,6 +720,15 @@ export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
                 >
                   <Zap className="w-3.5 h-3.5" />
                   {isEnhancing ? 'Optimizing...' : 'Flash-Lite'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsAiDanceModalOpen(true)}
+                  className="text-[11px] font-bold text-pink-400 hover:text-pink-300 flex items-center gap-1 transition-colors"
+                  title="Open Fill-in-the-Blank Prompts & AI Dance Duet Studio"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-pink-400" />
+                  <span>Fill-in Prompts</span>
                 </button>
               </div>
             </h4>
@@ -1926,6 +1965,15 @@ export const LeoStudioTab: React.FC<LeoStudioTabProps> = ({
         activeEngineId={selectedEngineId}
         onSelectEngine={(newEngine) => setSelectedEngineId(newEngine)}
         currentPrompt={spec.prompt}
+      />
+
+      {/* AI Dance Video Maker & Fill-in-the-Blank Studio Modal */}
+      <AiDanceStudioModal
+        isOpen={isAiDanceModalOpen}
+        onClose={() => setIsAiDanceModalOpen(false)}
+        onApplyPromptToStudio={(newPrompt) => {
+          setSpec((prev) => ({ ...prev, prompt: newPrompt }));
+        }}
       />
     </div>
   );

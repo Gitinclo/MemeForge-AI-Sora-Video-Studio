@@ -1,5 +1,14 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { TextLayer, MemeSticker, CanvasFilter } from '../types/meme';
+import { isSupportedImageFile, formatDroppedFileName } from '../utils/dragDropUtils';
+import {
+  UploadCloud,
+  Sparkles,
+  AlertCircle,
+  CheckCircle2,
+  Image as ImageIcon,
+  Loader2,
+} from 'lucide-react';
 
 interface MemeCanvasProps {
   imageSrc: string;
@@ -11,6 +20,7 @@ interface MemeCanvasProps {
   onSelectLayer: (id: string | null) => void;
   onUpdateLayerPosition: (id: string, x: number, y: number) => void;
   onUpdateStickerPosition?: (id: string, x: number, y: number) => void;
+  onDropImageAsTemplate?: (dataUrl: string, fileName: string, file: File) => void;
   canvasRefOut?: React.RefObject<HTMLCanvasElement | null>;
   isPlayingAudio?: boolean;
   activeAudioName?: string;
@@ -25,13 +35,22 @@ export const MemeCanvas: React.FC<MemeCanvasProps> = ({
   selectedLayerId,
   onSelectLayer,
   onUpdateLayerPosition,
+  onDropImageAsTemplate,
   canvasRefOut,
   isPlayingAudio = false,
   activeAudioName,
 }) => {
   const localCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const canvasRef = canvasRefOut || localCanvasRef;
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [imageObj, setImageObj] = useState<HTMLImageElement | null>(null);
+
+  // Drag-and-drop state for desktop file uploads
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [dragEnterCount, setDragEnterCount] = useState(0);
+  const [dragError, setDragError] = useState<string | null>(null);
+  const [isProcessingDrop, setIsProcessingDrop] = useState(false);
+  const [dropSuccessToast, setDropSuccessToast] = useState<string | null>(null);
 
   // Load image when imageSrc changes
   useEffect(() => {
@@ -366,12 +385,123 @@ export const MemeCanvas: React.FC<MemeCanvasProps> = ({
     }
   };
 
+  // Drag-and-drop file processing from user's desktop
+  const processDroppedFile = useCallback(
+    (file: File) => {
+      if (!isSupportedImageFile(file)) {
+        setDragError(`"${file.name}" is not a supported image. Please drop a PNG, JPG, WebP, GIF, or SVG.`);
+        setTimeout(() => setDragError(null), 4500);
+        return;
+      }
+
+      setIsProcessingDrop(true);
+      setDragError(null);
+
+      const reader = new FileReader();
+      reader.onload = (loadEv) => {
+        const dataUrl = loadEv.target?.result as string;
+        if (dataUrl && onDropImageAsTemplate) {
+          onDropImageAsTemplate(dataUrl, file.name, file);
+          const cleanTitle = formatDroppedFileName(file.name);
+          setDropSuccessToast(`Loaded "${cleanTitle}" as new template layer!`);
+          setTimeout(() => setDropSuccessToast(null), 3500);
+        }
+        setIsProcessingDrop(false);
+      };
+
+      reader.onerror = () => {
+        setDragError('Failed to read desktop image file. Please try another image.');
+        setIsProcessingDrop(false);
+        setTimeout(() => setDragError(null), 4500);
+      };
+
+      reader.readAsDataURL(file);
+    },
+    [onDropImageAsTemplate]
+  );
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragEnterCount((prev) => prev + 1);
+    if (e.dataTransfer?.items && e.dataTransfer.items.length > 0) {
+      setIsDraggingOver(true);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'copy';
+    }
+    if (!isDraggingOver) {
+      setIsDraggingOver(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragEnterCount((prev) => {
+      const next = prev - 1;
+      if (next <= 0) {
+        setIsDraggingOver(false);
+        return 0;
+      }
+      return next;
+    });
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+    setDragEnterCount(0);
+
+    const files = e.dataTransfer?.files;
+    if (files && files.length > 0) {
+      processDroppedFile(files[0]);
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      processDroppedFile(files[0]);
+    }
+    e.target.value = '';
+  };
+
   return (
-    <div className={`relative w-full flex items-center justify-center p-2 sm:p-4 bg-slate-950/70 rounded-2xl border transition-all duration-300 shadow-2xl backdrop-blur-xl overflow-hidden group ${
-      isPlayingAudio ? 'border-amber-500/80 ring-4 ring-amber-500/20 shadow-amber-500/20' : 'border-slate-800/80'
-    }`}>
+    <div
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={`relative w-full flex items-center justify-center p-2 sm:p-4 bg-slate-950/70 rounded-2xl border transition-all duration-300 shadow-2xl backdrop-blur-xl overflow-hidden group ${
+        isDraggingOver
+          ? 'border-amber-400 ring-4 ring-amber-400/30 shadow-amber-400/20 bg-slate-950/90'
+          : isPlayingAudio
+          ? 'border-amber-500/80 ring-4 ring-amber-500/20 shadow-amber-500/20'
+          : 'border-slate-800/80 hover:border-slate-700/80'
+      }`}
+    >
+      {/* Hidden file picker input for clicking to browse desktop files */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,.png,.jpg,.jpeg,.webp,.gif,.svg,.avif"
+        onChange={handleFileInputChange}
+        className="hidden"
+      />
+
       <div className={`absolute inset-0 transition-opacity duration-300 pointer-events-none ${
-        isPlayingAudio ? 'bg-gradient-to-tr from-amber-500/20 via-purple-500/20 to-indigo-500/20 opacity-100' : 'bg-gradient-to-tr from-amber-500/5 via-indigo-500/5 to-purple-500/10 opacity-60'
+        isDraggingOver
+          ? 'bg-gradient-to-tr from-amber-500/25 via-purple-500/20 to-cyan-500/20 opacity-100'
+          : isPlayingAudio
+          ? 'bg-gradient-to-tr from-amber-500/20 via-purple-500/20 to-indigo-500/20 opacity-100'
+          : 'bg-gradient-to-tr from-amber-500/5 via-indigo-500/5 to-purple-500/10 opacity-60'
       }`} />
 
       <canvas
@@ -381,6 +511,54 @@ export const MemeCanvas: React.FC<MemeCanvasProps> = ({
           isPlayingAudio ? 'scale-[1.01] shadow-amber-500/30' : ''
         }`}
       />
+
+      {/* FULL DRAG-AND-DROP ACTIVE OVERLAY */}
+      {isDraggingOver && (
+        <div className="absolute inset-2 sm:inset-3 z-30 flex flex-col items-center justify-center p-6 bg-slate-950/90 backdrop-blur-md rounded-xl border-2 border-dashed border-amber-400 text-center animate-fade-in pointer-events-none">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-purple-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center shadow-xl shadow-amber-500/20 mb-3 animate-bounce">
+            <UploadCloud className="w-8 h-8" />
+          </div>
+          <h4 className="text-lg font-black text-white tracking-tight flex items-center gap-2">
+            <span>Drop Desktop Image to Upload as Template</span>
+            <Sparkles className="w-4 h-4 text-amber-300" />
+          </h4>
+          <p className="text-xs text-amber-200/90 mt-1 max-w-md leading-relaxed">
+            Release your image file to replace the canvas template and auto-detect dimensions.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-1.5 mt-4 text-[10px] text-slate-300 font-mono">
+            <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">PNG</span>
+            <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">JPG</span>
+            <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">WEBP</span>
+            <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">GIF</span>
+            <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">SVG</span>
+          </div>
+        </div>
+      )}
+
+      {/* PROCESSING DROP SPINNER */}
+      {isProcessingDrop && (
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-md rounded-2xl text-center animate-fade-in">
+          <Loader2 className="w-10 h-10 text-amber-400 animate-spin mb-2" />
+          <p className="text-sm font-bold text-white">Importing Desktop Template...</p>
+          <p className="text-xs text-slate-400">Processing image buffer and fitting canvas dimensions</p>
+        </div>
+      )}
+
+      {/* ERROR BANNER */}
+      {dragError && (
+        <div className="absolute top-4 inset-x-4 sm:inset-x-auto z-40 max-w-md mx-auto bg-red-950/95 border border-red-500/80 text-red-200 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 shadow-2xl backdrop-blur-md animate-fade-in">
+          <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+          <span className="flex-1">{dragError}</span>
+        </div>
+      )}
+
+      {/* SUCCESS TOAST */}
+      {dropSuccessToast && (
+        <div className="absolute top-4 inset-x-4 sm:inset-x-auto z-40 max-w-md mx-auto bg-emerald-950/95 border border-emerald-500/80 text-emerald-200 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-2xl backdrop-blur-md animate-fade-in">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span className="flex-1">{dropSuccessToast}</span>
+        </div>
+      )}
 
       {/* Playing Audio Equalizer Overlay */}
       {isPlayingAudio && (
@@ -397,9 +575,23 @@ export const MemeCanvas: React.FC<MemeCanvasProps> = ({
         </div>
       )}
 
-      <div className="absolute bottom-3 left-4 text-[11px] font-medium text-slate-400 bg-slate-900/80 px-2.5 py-1 rounded-full border border-slate-700/50 backdrop-blur-md pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity flex items-center gap-1.5">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-        Click &amp; drag text to reposition
+      {/* Bottom Canvas Hints & Desktop Drop Prompt */}
+      <div className="absolute bottom-3 inset-x-4 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+        <div className="text-[11px] font-medium text-slate-400 bg-slate-900/85 px-2.5 py-1 rounded-full border border-slate-700/50 backdrop-blur-md opacity-80 group-hover:opacity-100 transition-opacity flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          Click &amp; drag text to reposition
+        </div>
+
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="pointer-events-auto text-[11px] font-bold text-amber-300/90 hover:text-white bg-slate-900/85 hover:bg-slate-800/90 px-2.5 py-1 rounded-full border border-amber-500/30 hover:border-amber-500/60 backdrop-blur-md transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+          title="Drag and drop an image from your desktop, or click to browse files"
+        >
+          <UploadCloud className="w-3.5 h-3.5 text-amber-400" />
+          <span>Drag desktop image here</span>
+          <span className="text-slate-500">or browse</span>
+        </button>
       </div>
     </div>
   );

@@ -164,7 +164,7 @@ export interface UserSubscription {
   teamSeats?: number;
 }
 
-export type ProductionJobStatus = 'rendering' | 'compositing' | 'in_review' | 'queued' | 'completed' | 'paused';
+export type ProductionJobStatus = 'draft' | 'rendering' | 'compositing' | 'in_review' | 'changes_requested' | 'approved' | 'published' | 'queued' | 'completed' | 'paused';
 export type ProductionJobPriority = 'urgent' | 'high' | 'normal';
 
 export interface VideoProductionJob {
