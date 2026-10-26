@@ -10,6 +10,10 @@ import {
   B2B_PRICING_CATALOG,
   PRESET_LORA_MODELS,
   SAMPLE_SALES_LEADS,
+  validateProductDataset,
+  getSampleProductDataset,
+  createLoraTrainingJob,
+  advanceTrainingJob,
 } from './b2bEnterpriseEngine';
 
 test('calculateB2bRoi: calculates correct savings and ROI multiple for Pro plan', () => {
@@ -117,3 +121,58 @@ test('B2B_PRICING_CATALOG: contains Starter, Pro, and Enterprise tiers with corr
   assert.equal(B2B_PRICING_CATALOG.enterprise.dedicatedGpuVpc, true);
   assert.equal(B2B_PRICING_CATALOG.pro.soc2ComplianceIncluded, true);
 });
+
+test('validateProductDataset: enforces 10 to 20 images threshold strictly', () => {
+  const sample14 = getSampleProductDataset('cosmetics', 'Test Serum');
+  assert.equal(sample14.length, 14);
+
+  // 14 images -> valid
+  const validResult = validateProductDataset(sample14);
+  assert.equal(validResult.isValid, true);
+  assert.equal(validResult.canTrain, true);
+  assert.ok(validResult.qualityScore >= 80);
+
+  // 0 images -> invalid
+  const emptyResult = validateProductDataset([]);
+  assert.equal(emptyResult.isValid, false);
+  assert.equal(emptyResult.canTrain, false);
+
+  // 5 images -> invalid (< 10)
+  const underResult = validateProductDataset(sample14.slice(0, 5));
+  assert.equal(underResult.isValid, false);
+  assert.equal(underResult.canTrain, false);
+  assert.ok(underResult.statusMessage.includes('Insufficient dataset size'));
+
+  // 22 images -> invalid (> 20)
+  const overResult = validateProductDataset([...sample14, ...sample14.slice(0, 8)]);
+  assert.equal(overResult.isValid, false);
+  assert.equal(overResult.canTrain, false);
+  assert.ok(overResult.statusMessage.includes('exceeds maximum limit'));
+});
+
+test('createLoraTrainingJob and advanceTrainingJob: steps through lifecycle to completion', () => {
+  let job = createLoraTrainingJob({
+    productName: 'Hydra Glass Bottle',
+    category: 'cosmetics',
+    rank: 32,
+    targetSteps: 300,
+  });
+
+  assert.equal(job.triggerToken, '[HYDRA_GLASS_BOTTLE]');
+  assert.equal(job.phase, 'validating_dataset');
+  assert.equal(job.currentStep, 0);
+
+  // Step 1: Advance by 50 steps
+  job = advanceTrainingJob(job, 50);
+  assert.ok(job.currentStep > 0);
+  assert.ok(job.logs.length >= 4);
+
+  // Step 2: Advance to completion
+  job = advanceTrainingJob(job, 300);
+  assert.equal(job.phase, 'completed');
+  assert.equal(job.currentStep, job.targetSteps);
+  assert.ok(job.currentLoss < 0.1);
+  assert.ok(job.preservationScores);
+  assert.equal(job.preservationScores.logoFidelityPct, 99.4);
+});
+

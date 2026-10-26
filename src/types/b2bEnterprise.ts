@@ -162,3 +162,63 @@ export interface EnterpriseSecurityConfig {
   dataEncryption: 'AES-256-GCM Hardware-Locked';
   retentionWindowDays: number;
 }
+
+export type ProductAngleType =
+  | 'Front View'
+  | '3/4 Perspective'
+  | 'Side Profile'
+  | 'Rear View'
+  | 'Top Down'
+  | 'Macro Label Detail'
+  | 'Cap & Closure'
+  | 'Studio Lighting High-Key'
+  | 'Studio Lighting Low-Key'
+  | 'Floating 45° Angle';
+
+export interface ProductTrainingImage {
+  id: string;
+  name: string;
+  dataUri: string;
+  angleLabel: ProductAngleType;
+  width: number;
+  height: number;
+  fileSizeBytes: number;
+  vlmCaption: string;
+}
+
+export type LoraTrainingPhase =
+  | 'idle'
+  | 'validating_dataset'
+  | 'extracting_latents'
+  | 'training_lora'
+  | 'compiling_safetensors'
+  | 'completed'
+  | 'failed';
+
+export interface LoraTrainingJobState {
+  jobId: string;
+  productName: string;
+  brandName: string;
+  triggerToken: string;
+  category: B2BCategory;
+  baseModel: string;
+  rank: 16 | 32 | 64;
+  alpha: number;
+  learningRate: string;
+  enableGeometryLock: boolean;
+  zeroDataRetention: boolean;
+  targetSteps: number;
+  currentStep: number;
+  currentLoss: number;
+  phase: LoraTrainingPhase;
+  lossHistory: number[];
+  logs: string[];
+  checkpointSizeMb: number;
+  safetensorsFilename: string;
+  estimatedRemainingSeconds: number;
+  preservationScores?: {
+    logoFidelityPct: number;
+    geometryIoUPct: number;
+    textSharpnessScore: number;
+  };
+}

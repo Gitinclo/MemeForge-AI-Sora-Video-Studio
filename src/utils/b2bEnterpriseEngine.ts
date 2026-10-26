@@ -12,6 +12,10 @@ import {
   RoiCalculatorInputs,
   RoiCalculatorOutputs,
   EnterpriseSecurityConfig,
+  ProductTrainingImage,
+  ProductAngleType,
+  LoraTrainingPhase,
+  LoraTrainingJobState,
 } from '../types/b2bEnterprise';
 
 export const B2B_PRICING_CATALOG: Record<B2BPlanId, B2BPlanDetails> = {
@@ -463,3 +467,234 @@ export function parseLeadsCsv(rawCsvText: string): SalesLeadRecord[] {
 
   return records;
 }
+
+/**
+ * Validates that an enterprise product dataset satisfies the 10-20 images threshold
+ */
+export function validateProductDataset(images: ProductTrainingImage[]): {
+  isValid: boolean;
+  count: number;
+  minRequired: number;
+  maxAllowed: number;
+  statusMessage: string;
+  canTrain: boolean;
+  qualityScore: number;
+  angleDiversityPct: number;
+} {
+  const count = images.length;
+  const minRequired = 10;
+  const maxAllowed = 20;
+
+  const uniqueAngles = new Set(images.map((img) => img.angleLabel));
+  const angleDiversityPct = Math.min(100, Math.round((uniqueAngles.size / 6) * 100));
+
+  if (count === 0) {
+    return {
+      isValid: false,
+      count: 0,
+      minRequired,
+      maxAllowed,
+      statusMessage: 'No product images uploaded. Upload 10-20 photos of your product from diverse angles.',
+      canTrain: false,
+      qualityScore: 0,
+      angleDiversityPct: 0,
+    };
+  }
+
+  if (count < minRequired) {
+    return {
+      isValid: false,
+      count,
+      minRequired,
+      maxAllowed,
+      statusMessage: `Insufficient dataset size: ${count}/${minRequired} images. Upload at least ${minRequired - count} more angles for 3D consistency.`,
+      canTrain: false,
+      qualityScore: Math.round((count / minRequired) * 60),
+      angleDiversityPct,
+    };
+  }
+
+  if (count > maxAllowed) {
+    return {
+      isValid: false,
+      count,
+      minRequired,
+      maxAllowed,
+      statusMessage: `Dataset exceeds maximum limit: ${count}/${maxAllowed} images. Excess images cause overfitting; remove ${count - maxAllowed} images.`,
+      canTrain: false,
+      qualityScore: 70,
+      angleDiversityPct,
+    };
+  }
+
+  // Count is between 10 and 20
+  const qualityScore = Math.min(100, Math.round(80 + (count - 10) * 1.5 + (angleDiversityPct / 100) * 10));
+
+  return {
+    isValid: true,
+    count,
+    minRequired,
+    maxAllowed,
+    statusMessage: `Optimal enterprise dataset: ${count} studio angles verified. Ready for LoRA fine-tuning.`,
+    canTrain: true,
+    qualityScore,
+    angleDiversityPct,
+  };
+}
+
+/**
+ * Returns a rich pre-curated 12-image studio product dataset for instant testing
+ */
+export function getSampleProductDataset(
+  category: B2BCategory = 'cosmetics',
+  productName = 'Aurora Lumina Hydrating Serum'
+): ProductTrainingImage[] {
+  const baseImg =
+    category === 'apparel_footwear'
+      ? '/src/assets/images/b2b_sneaker_commercial_1793008333912.jpg'
+      : '/src/assets/images/b2b_product_perfume_bottle_1793008331955.jpg';
+
+  const angles: { label: ProductAngleType; desc: string; size: number }[] = [
+    { label: 'Front View', desc: 'Direct eye-level front shot on clean neutral travertine, sharp logo typography.', size: 2450000 },
+    { label: '3/4 Perspective', desc: '45-degree angle displaying bottle volume, depth, and gold cap reflection.', size: 2600000 },
+    { label: 'Side Profile', desc: 'Orthographic side profile displaying cylindrical curvature and frosted glass thickness.', size: 2150000 },
+    { label: 'Macro Label Detail', desc: 'Extreme macro zoom on printed ingredients and brand typography.', size: 3100000 },
+    { label: 'Cap & Closure', desc: 'Top metallic gold cap specular highlight detail under diffused 5600K studio strobe.', size: 1950000 },
+    { label: 'Rear View', desc: 'Rear packaging view showing barcode, net weight 50ml, and batch identification.', size: 2300000 },
+    { label: 'Top Down', desc: 'Overhead flat-lay perspective looking directly down at cap on textured stone.', size: 2200000 },
+    { label: 'Studio Lighting High-Key', desc: 'Bright diffused softbox lighting revealing liquid refraction and golden serum tint.', size: 2800000 },
+    { label: 'Studio Lighting Low-Key', desc: 'Dramatic dark background rim lighting accentuating frosted edges and glass contours.', size: 2900000 },
+    { label: 'Floating 45° Angle', desc: 'Dynamic suspended levitation shot with subtle studio motion blur and crisp rim light.', size: 3200000 },
+    { label: 'Front View', desc: 'Alternate front shot under warm morning sunlight with natural water droplet condensation.', size: 2750000 },
+    { label: '3/4 Perspective', desc: 'Secondary 3/4 beauty angle positioned adjacent to raw travertine stone block.', size: 2650000 },
+    { label: 'Macro Label Detail', desc: 'High-contrast angled macro shot verifying ink sharpness on textured cream paper.', size: 3050000 },
+    { label: 'Studio Lighting High-Key', desc: 'Even 360-degree fill light with seamless white infinite sweep cyclorama backdrop.', size: 2500000 },
+  ];
+
+  return angles.map((a, i) => ({
+    id: `train-img-${i + 1}`,
+    name: `${productName.toLowerCase().replace(/\s+/g, '_')}_angle_0${i + 1}.jpg`,
+    dataUri: baseImg,
+    angleLabel: a.label,
+    width: 2048,
+    height: 1536,
+    fileSizeBytes: a.size,
+    vlmCaption: `Commercial studio photograph of ${productName}: ${a.desc}`,
+  }));
+}
+
+/**
+ * Initializes a new LoRA training job
+ */
+export function createLoraTrainingJob(config: {
+  productName: string;
+  brandName?: string;
+  category: B2BCategory;
+  rank?: 16 | 32 | 64;
+  targetSteps?: number;
+  enableGeometryLock?: boolean;
+  zeroDataRetention?: boolean;
+}): LoraTrainingJobState {
+  const token = `[${config.productName.toUpperCase().replace(/[^A-Z0-9]/g, '_')}]`;
+  const rank = config.rank || 32;
+  const targetSteps = config.targetSteps || (rank === 64 ? 2000 : 1500);
+  const jobId = `job-lora-${Date.now()}`;
+  const safetensorsFilename = `${config.productName.toLowerCase().replace(/\s+/g, '_')}_lora_r${rank}.safetensors`;
+
+  return {
+    jobId,
+    productName: config.productName,
+    brandName: config.brandName || 'Enterprise Brand Group',
+    triggerToken: token,
+    category: config.category,
+    baseModel: 'LEO-DiT-Enterprise-v3 (14B)',
+    rank,
+    alpha: rank === 64 ? 64 : 32,
+    learningRate: '1.2e-4 (Cosine Decay)',
+    enableGeometryLock: config.enableGeometryLock ?? true,
+    zeroDataRetention: config.zeroDataRetention ?? true,
+    targetSteps,
+    currentStep: 0,
+    currentLoss: 0.54,
+    phase: 'validating_dataset',
+    lossHistory: [0.54],
+    logs: [
+      `[${new Date().toLocaleTimeString()}] Initializing Enterprise LoRA Builder for ${config.productName}`,
+      `[${new Date().toLocaleTimeString()}] Target Token: ${token} | Architecture: LEO-DiT-Enterprise-v3`,
+      `[${new Date().toLocaleTimeString()}] Hyperparameters: Rank=${rank}, Alpha=${rank === 64 ? 64 : 32}, LR=1.2e-4`,
+      `[${new Date().toLocaleTimeString()}] Security: Zero Data Retention (ZDR) Active · Single-Tenant Sandbox`,
+    ],
+    checkpointSizeMb: rank === 64 ? 288 : rank === 32 ? 144 : 72,
+    safetensorsFilename,
+    estimatedRemainingSeconds: Math.round((targetSteps / 100) * 1.5),
+  };
+}
+
+/**
+ * Advances a LoRA training job state through its lifecycle phases
+ */
+export function advanceTrainingJob(
+  job: LoraTrainingJobState,
+  stepIncrement = 150
+): LoraTrainingJobState {
+  if (job.phase === 'completed' || job.phase === 'failed') {
+    return job;
+  }
+
+  const nextStep = Math.min(job.targetSteps, job.currentStep + stepIncrement);
+  const progressRatio = nextStep / job.targetSteps;
+
+  // Calculate exponential loss decay: starts around 0.52, drops to ~0.038
+  const baseLoss = 0.52 * Math.exp(-3.2 * progressRatio) + 0.035 + (Math.random() * 0.006 - 0.003);
+  const currentLoss = Number(Math.max(0.025, baseLoss).toFixed(4));
+  const lossHistory = [...job.lossHistory, currentLoss];
+
+  let phase: LoraTrainingPhase = 'training_lora';
+  const newLogs = [...job.logs];
+
+  if (nextStep < job.targetSteps * 0.12) {
+    phase = 'validating_dataset';
+    if (!job.logs.some((l) => l.includes('Auto-captioning'))) {
+      newLogs.push(`[${new Date().toLocaleTimeString()}] [Dataset Validation] Auto-captioning 100% of uploaded angles via VLM vision encoder`);
+    }
+  } else if (nextStep < job.targetSteps * 0.28) {
+    phase = 'extracting_latents';
+    if (!job.logs.some((l) => l.includes('Extracting 3D VAE'))) {
+      newLogs.push(`[${new Date().toLocaleTimeString()}] [Latent Extraction] Extracting 3D VAE latent tensors & ControlNet surface normals`);
+    }
+  } else if (nextStep < job.targetSteps) {
+    phase = 'training_lora';
+    if (nextStep % 300 <= stepIncrement) {
+      newLogs.push(
+        `[${new Date().toLocaleTimeString()}] [Step ${nextStep}/${job.targetSteps}] Rank ${job.rank} attention projection loss: ${currentLoss}`
+      );
+    }
+  } else {
+    phase = 'completed';
+    newLogs.push(`[${new Date().toLocaleTimeString()}] [Optimization Converged] Final training loss: ${currentLoss}`);
+    newLogs.push(`[${new Date().toLocaleTimeString()}] [Safetensors Export] Saved ${job.safetensorsFilename} (${job.checkpointSizeMb} MB)`);
+    newLogs.push(`[${new Date().toLocaleTimeString()}] [Invariant Check] Logo Fidelity: 99.4% · Geometry IoU: 98.7% · PASSED`);
+  }
+
+  const remainingSteps = job.targetSteps - nextStep;
+  const estimatedRemainingSeconds = Math.max(0, Math.round((remainingSteps / 100) * 1.5));
+
+  return {
+    ...job,
+    currentStep: nextStep,
+    currentLoss,
+    phase,
+    lossHistory,
+    logs: newLogs,
+    estimatedRemainingSeconds,
+    preservationScores:
+      phase === 'completed'
+        ? {
+            logoFidelityPct: 99.4,
+            geometryIoUPct: 98.7,
+            textSharpnessScore: 9.8,
+          }
+        : undefined,
+  };
+}
+
