@@ -13,7 +13,7 @@
     "test": "tsx --test src/utils/b2bEnterpriseEngine.test.ts src/utils/memeAudioEngine.test.ts src/data/memeStylePresets.test.ts src/utils/videoDurationUtils.test.ts src/utils/subscriptionUtils.test.ts src/utils/cinemaEngine.test.ts src/utils/youtubeUploadUtils.test.ts src/utils/leo8kEngine.test.ts src/utils/engineMigration2026.test.ts src/utils/dragDropUtils.test.ts src/utils/aiDanceEngine.test.ts tests/meme-logic.test.ts"
   },
   "dependencies": {
-    "@google/genai": "^2.4.0",
+    "@google/genai": "^2.31.0",
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-react": "^6.1.1",
     "lucide-react": "^0.546.0",
