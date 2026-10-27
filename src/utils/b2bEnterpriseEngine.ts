@@ -16,6 +16,9 @@ import {
   ProductAngleType,
   LoraTrainingPhase,
   LoraTrainingJobState,
+  GpuUtilizationTelemetry,
+  ModelSandboxPresetPrompt,
+  SandboxTestResult,
 } from '../types/b2bEnterprise';
 
 export const B2B_PRICING_CATALOG: Record<B2BPlanId, B2BPlanDetails> = {
@@ -695,6 +698,285 @@ export function advanceTrainingJob(
             textSharpnessScore: 9.8,
           }
         : undefined,
+  };
+}
+
+export const DEFAULT_GPU_CLUSTER_NODES: GpuUtilizationTelemetry[] = [
+  {
+    nodeId: 'gpu-node-01',
+    clusterRack: 'Rack A / Pod 04 (Virginia DC)',
+    gpuModel: 'NVIDIA H100 80GB SXM5',
+    computeUtilizationPct: 97.4,
+    vramUsedGb: 68.4,
+    vramTotalGb: 80,
+    temperatureC: 58,
+    powerWatts: 512,
+    powerLimitWatts: 700,
+    activeCudaStreams: 8,
+    pcieBandwidthGbps: 112.4,
+    hbm3BandwidthTbps: 3.2,
+    fanSpeedPct: 76,
+    status: 'optimal',
+  },
+  {
+    nodeId: 'gpu-node-02',
+    clusterRack: 'Rack A / Pod 05 (Virginia DC)',
+    gpuModel: 'NVIDIA H100 80GB SXM5',
+    computeUtilizationPct: 94.2,
+    vramUsedGb: 64.1,
+    vramTotalGb: 80,
+    temperatureC: 56,
+    powerWatts: 485,
+    powerLimitWatts: 700,
+    activeCudaStreams: 6,
+    pcieBandwidthGbps: 108.0,
+    hbm3BandwidthTbps: 3.1,
+    fanSpeedPct: 72,
+    status: 'optimal',
+  },
+  {
+    nodeId: 'gpu-node-03',
+    clusterRack: 'Rack B / Pod 01 (Frankfurt DC)',
+    gpuModel: 'NVIDIA B200 192GB Blackwell',
+    computeUtilizationPct: 88.5,
+    vramUsedGb: 112.0,
+    vramTotalGb: 192,
+    temperatureC: 52,
+    powerWatts: 620,
+    powerLimitWatts: 1000,
+    activeCudaStreams: 12,
+    pcieBandwidthGbps: 224.0,
+    hbm3BandwidthTbps: 8.0,
+    fanSpeedPct: 68,
+    status: 'optimal',
+  },
+  {
+    nodeId: 'gpu-node-04',
+    clusterRack: 'Rack C / Pod 02 (Mumbai DC)',
+    gpuModel: 'NVIDIA A100 80GB SXM4',
+    computeUtilizationPct: 45.0,
+    vramUsedGb: 32.0,
+    vramTotalGb: 80,
+    temperatureC: 49,
+    powerWatts: 280,
+    powerLimitWatts: 400,
+    activeCudaStreams: 4,
+    pcieBandwidthGbps: 54.0,
+    hbm3BandwidthTbps: 2.0,
+    fanSpeedPct: 58,
+    status: 'optimal',
+  },
+];
+
+export const MODEL_SANDBOX_PRESET_PROMPTS: ModelSandboxPresetPrompt[] = [
+  {
+    id: 'preset-macro-travertine',
+    scenarioName: 'Clean Studio Macro on Travertine',
+    scenarioCategory: 'studio_macro',
+    promptTemplate:
+      'A pristine macro commercial shot of {{token}} resting on a smooth honed travertine stone pedestal, warm diffused Mediterranean sunlight, delicate water ripples in background, 8K razor-sharp commercial photography',
+    recommendedCamera: 'Slow Orbit 360° + Macro Track',
+    recommendedLighting: 'Diffused Morning Rim Light (5600K)',
+    previewImage: '/src/assets/images/b2b_product_perfume_bottle_1793008331955.jpg',
+    testFocus: 'Logo vector alignment & label typography clarity',
+    expectedInvariant: 'Zero typography distortion, 99.4% logo fidelity',
+  },
+  {
+    id: 'preset-high-motion',
+    scenarioName: 'High-Velocity Kinetic & Splash Test',
+    scenarioCategory: 'high_motion',
+    promptTemplate:
+      'Commercial advertisement of {{token}} suspended mid-air in high-velocity airflow, carbon fiber particles disintegrating into light, rim lit against dark carbon background, anamorphic lens flare',
+    recommendedCamera: 'Dolly Zoom with 45° Shutter',
+    recommendedLighting: 'Cyan & White Studio Rim Strobes',
+    previewImage: '/src/assets/images/b2b_sneaker_commercial_1793008333912.jpg',
+    testFocus: '3D volume & silhouette preservation during motion ramps',
+    expectedInvariant: 'No mesh warping or logo hallucination at high velocity',
+  },
+  {
+    id: 'preset-low-key-obsidian',
+    scenarioName: 'Dramatic Low-Key Obsidian Studio',
+    scenarioCategory: 'dramatic_lighting',
+    promptTemplate:
+      'A cinematic low-key commercial shot of {{token}} placed against matte dark obsidian stone, razor-thin cyan edge lighting outlining silhouette and surface finish, moody luxury advertising aesthetic',
+    recommendedCamera: 'Vertical Crane Jib Down',
+    recommendedLighting: 'Dual Edge Rim Lights (Cyan / Warm Tungsten)',
+    previewImage: '/src/assets/images/b2b_product_perfume_bottle_1793008331955.jpg',
+    testFocus: 'Reflective surface properties & dark shadow contours',
+    expectedInvariant: 'Precise edge boundary definition with >98% IoU',
+  },
+  {
+    id: 'preset-spokesperson-lifestyle',
+    scenarioName: 'Executive Spokesperson Commercial',
+    scenarioCategory: 'lifestyle',
+    promptTemplate:
+      'A high-end corporate video advertisement showing a professional spokesperson in executive attire presenting {{token}} on a modern conference glass table, natural depth of field, authentic scale',
+    recommendedCamera: 'Medium Over-the-Shoulder Track',
+    recommendedLighting: 'Architectural Window Daylight',
+    previewImage: '/src/assets/images/b2b_spokesperson_executive_1793008332124.jpg',
+    testFocus: 'Relative physical scale against human hands and office setting',
+    expectedInvariant: 'Accurate scale proportions without blurring',
+  },
+  {
+    id: 'preset-label-macro',
+    scenarioName: 'Macro Label & Ingredient Legibility',
+    scenarioCategory: 'label_typography',
+    promptTemplate:
+      'Extreme close-up macro lens inspection of {{token}} printed label, razor-sharp focus on brand logotype, typography hierarchy, net weight text, and barcode fidelity, zero hallucination',
+    recommendedCamera: '100mm Macro Linear Slider',
+    recommendedLighting: 'Even Ring Light Diffuser (4500K)',
+    previewImage: '/src/assets/images/b2b_product_perfume_bottle_1793008331955.jpg',
+    testFocus: 'Micro-text readability, barcode structure, and ink contrast',
+    expectedInvariant: '100% vector letterform adherence with no hallucinated characters',
+  },
+];
+
+export const INITIAL_LORA_TRAINING_JOBS: LoraTrainingJobState[] = [
+  {
+    jobId: 'job-lora-live-1',
+    productName: 'Aurora Lumina Hydrating Serum',
+    brandName: 'Global Cosmetics Group',
+    triggerToken: '[AURORA_LUMINA_SERUM]',
+    category: 'cosmetics',
+    baseModel: 'LEO-DiT-Enterprise-v3 (14B)',
+    rank: 32,
+    alpha: 32,
+    learningRate: '1.2e-4 (Cosine Decay)',
+    enableGeometryLock: true,
+    zeroDataRetention: true,
+    targetSteps: 1500,
+    currentStep: 960,
+    currentLoss: 0.058,
+    phase: 'training_lora',
+    lossHistory: [0.52, 0.41, 0.28, 0.17, 0.11, 0.078, 0.058],
+    logs: [
+      '[10:14:02] Initializing Enterprise LoRA Builder for Aurora Lumina Hydrating Serum',
+      '[10:14:15] [Dataset Validation] Auto-captioned 14 studio angles via VLM vision encoder',
+      '[10:14:38] [Latent Extraction] Extracted 3D VAE latent tensors & ControlNet surface normals',
+      '[10:16:10] [Step 300/1500] Rank 32 attention projection loss: 0.174',
+      '[10:18:24] [Step 600/1500] Rank 32 attention projection loss: 0.108',
+      '[10:20:45] [Step 900/1500] Rank 32 attention projection loss: 0.064',
+    ],
+    checkpointSizeMb: 144,
+    safetensorsFilename: 'aurora_lumina_serum_lora_r32.safetensors',
+    estimatedRemainingSeconds: 162,
+    preservationScores: {
+      logoFidelityPct: 99.4,
+      geometryIoUPct: 98.7,
+      textSharpnessScore: 9.8,
+    },
+  },
+  {
+    jobId: 'job-lora-live-2',
+    productName: 'Aero Velocity Pro Carbon Sneaker',
+    brandName: 'Aero Athletics Enterprise',
+    triggerToken: '[AERO_VELOCITY_SNEAKER]',
+    category: 'apparel_footwear',
+    baseModel: 'LEO-DiT-Enterprise-v3 (14B)',
+    rank: 32,
+    alpha: 32,
+    learningRate: '1.2e-4 (Cosine Decay)',
+    enableGeometryLock: true,
+    zeroDataRetention: true,
+    targetSteps: 1200,
+    currentStep: 1200,
+    currentLoss: 0.041,
+    phase: 'completed',
+    lossHistory: [0.55, 0.38, 0.23, 0.14, 0.09, 0.058, 0.041],
+    logs: [
+      '[09:45:10] Initializing Enterprise LoRA Builder for Aero Velocity Pro Carbon Sneaker',
+      '[09:45:22] [Dataset Validation] Auto-captioned 14 studio angles via VLM vision encoder',
+      '[09:47:05] [Latent Extraction] Extracted 3D VAE latent tensors & ControlNet surface normals',
+      '[09:56:40] [Optimization Converged] Final training loss: 0.041',
+      '[09:56:52] [Safetensors Export] Saved aero_velocity_pro_carbon_sneaker_lora_r32.safetensors (138 MB)',
+      '[09:57:01] [Invariant Check] Logo Fidelity: 99.1% · Geometry IoU: 97.9% · PASSED',
+    ],
+    checkpointSizeMb: 138,
+    safetensorsFilename: 'aero_velocity_pro_carbon_sneaker_lora_r32.safetensors',
+    estimatedRemainingSeconds: 0,
+    preservationScores: {
+      logoFidelityPct: 99.1,
+      geometryIoUPct: 97.9,
+      textSharpnessScore: 9.6,
+    },
+  },
+  {
+    jobId: 'job-lora-live-3',
+    productName: 'Quantum Core Server Pod',
+    brandName: 'Quantum Hardware Systems',
+    triggerToken: '[QUANTUM_CORE_POD]',
+    category: 'tech_hardware',
+    baseModel: 'LEO-DiT-Enterprise-v3 (14B)',
+    rank: 64,
+    alpha: 64,
+    learningRate: '1.0e-4 (Cosine Decay)',
+    enableGeometryLock: true,
+    zeroDataRetention: true,
+    targetSteps: 2000,
+    currentStep: 340,
+    currentLoss: 0.31,
+    phase: 'extracting_latents',
+    lossHistory: [0.58, 0.46, 0.38, 0.31],
+    logs: [
+      '[10:22:15] Initializing Enterprise LoRA Builder for Quantum Core Server Pod',
+      '[10:22:30] [Dataset Validation] Auto-captioned 16 studio angles via VLM vision encoder',
+      '[10:23:45] [Latent Extraction] Extracting 3D VAE latent tensors & ControlNet surface normals',
+    ],
+    checkpointSizeMb: 288,
+    safetensorsFilename: 'quantum_core_server_pod_lora_r64.safetensors',
+    estimatedRemainingSeconds: 380,
+  },
+];
+
+/**
+ * Formats seconds into human-readable minutes and seconds (e.g. 02m 45s)
+ */
+export function formatRemainingTime(totalSeconds: number): string {
+  if (totalSeconds <= 0) return 'Complete';
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = Math.floor(totalSeconds % 60);
+  return `${mins.toString().padStart(2, '0')}m ${secs.toString().padStart(2, '0')}s remaining`;
+}
+
+/**
+ * Simulates a real-time sandbox test verification run for a LoRA model
+ */
+export function simulateSandboxTest(
+  model: ProductLoraModel,
+  preset: ModelSandboxPresetPrompt,
+  customPrompt?: string
+): SandboxTestResult {
+  const promptText = customPrompt || preset.promptTemplate.replace(/\{\{token\}\}/g, model.triggerToken);
+  const isCustom = Boolean(customPrompt && customPrompt.trim().length > 0);
+
+  // High precision simulation based on model rank and preset category
+  const logoBase = model.preservationMetrics?.logoFidelityPct || 99.2;
+  const iouBase = model.preservationMetrics?.geometryIoUPct || 98.4;
+  const sharpnessBase = (model.preservationMetrics?.textSharpnessScore || 9.7) * 10;
+
+  // Add minute realistic variation
+  const logoIntegrityPct = Number(Math.min(99.9, Math.max(97.5, logoBase + (Math.random() * 0.4 - 0.2))).toFixed(1));
+  const geometrySilhouetteIoU = Number(Math.min(99.5, Math.max(96.8, iouBase + (Math.random() * 0.4 - 0.2))).toFixed(1));
+  const materialPurityPct = Number(Math.min(99.8, Math.max(97.0, (sharpnessBase + 0.1) + (Math.random() * 0.3 - 0.15))).toFixed(1));
+
+  const imageSrc =
+    model.category === 'apparel_footwear'
+      ? '/src/assets/images/b2b_sneaker_commercial_1793008333912.jpg'
+      : '/src/assets/images/b2b_product_perfume_bottle_1793008331955.jpg';
+
+  return {
+    testId: `test-run-${Date.now()}`,
+    presetId: preset.id,
+    scenarioName: isCustom ? 'Custom Enterprise Prompt' : preset.scenarioName,
+    modelId: model.id,
+    modelToken: model.triggerToken,
+    renderedImage: imageSrc,
+    logoIntegrityPct,
+    geometrySilhouetteIoU,
+    materialPurityPct,
+    status: logoIntegrityPct >= 98.0 && geometrySilhouetteIoU >= 97.0 ? 'passed' : 'review_needed',
+    renderTimeSec: Number((1.8 + Math.random() * 0.8).toFixed(2)),
+    timestamp: new Date().toLocaleTimeString(),
   };
 }
 

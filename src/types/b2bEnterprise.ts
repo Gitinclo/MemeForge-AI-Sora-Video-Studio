@@ -222,3 +222,47 @@ export interface LoraTrainingJobState {
     textSharpnessScore: number;
   };
 }
+
+export interface GpuUtilizationTelemetry {
+  nodeId: string;
+  clusterRack: string;
+  gpuModel: string;
+  computeUtilizationPct: number;
+  vramUsedGb: number;
+  vramTotalGb: number;
+  temperatureC: number;
+  powerWatts: number;
+  powerLimitWatts: number;
+  activeCudaStreams: number;
+  pcieBandwidthGbps: number;
+  hbm3BandwidthTbps: number;
+  fanSpeedPct: number;
+  status: 'optimal' | 'throttling' | 'offline';
+}
+
+export interface ModelSandboxPresetPrompt {
+  id: string;
+  scenarioName: string;
+  scenarioCategory: 'studio_macro' | 'high_motion' | 'dramatic_lighting' | 'lifestyle' | 'label_typography';
+  promptTemplate: string;
+  recommendedCamera: string;
+  recommendedLighting: string;
+  previewImage: string;
+  testFocus: string;
+  expectedInvariant: string;
+}
+
+export interface SandboxTestResult {
+  testId: string;
+  presetId: string;
+  scenarioName: string;
+  modelId: string;
+  modelToken: string;
+  renderedImage: string;
+  logoIntegrityPct: number;
+  geometrySilhouetteIoU: number;
+  materialPurityPct: number;
+  status: 'passed' | 'review_needed';
+  renderTimeSec: number;
+  timestamp: string;
+}

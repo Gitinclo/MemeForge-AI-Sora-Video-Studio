@@ -14,6 +14,11 @@ import {
   getSampleProductDataset,
   createLoraTrainingJob,
   advanceTrainingJob,
+  formatRemainingTime,
+  simulateSandboxTest,
+  MODEL_SANDBOX_PRESET_PROMPTS,
+  DEFAULT_GPU_CLUSTER_NODES,
+  INITIAL_LORA_TRAINING_JOBS,
 } from './b2bEnterpriseEngine';
 
 test('calculateB2bRoi: calculates correct savings and ROI multiple for Pro plan', () => {
@@ -176,3 +181,33 @@ test('createLoraTrainingJob and advanceTrainingJob: steps through lifecycle to c
   assert.equal(job.preservationScores.logoFidelityPct, 99.4);
 });
 
+test("formatRemainingTime: formats minutes and seconds correctly", () => {
+  assert.equal(formatRemainingTime(0), "Complete");
+  assert.equal(formatRemainingTime(162), "02m 42s remaining");
+  assert.equal(formatRemainingTime(45), "00m 45s remaining");
+});
+
+test("DEFAULT_GPU_CLUSTER_NODES and INITIAL_LORA_TRAINING_JOBS: valid telemetry and job specs", () => {
+  assert.ok(DEFAULT_GPU_CLUSTER_NODES.length >= 3);
+  const h100 = DEFAULT_GPU_CLUSTER_NODES[0];
+  assert.equal(h100.vramTotalGb, 80);
+  assert.ok(h100.computeUtilizationPct > 90);
+
+  assert.ok(INITIAL_LORA_TRAINING_JOBS.length >= 2);
+  const activeJob = INITIAL_LORA_TRAINING_JOBS[0];
+  assert.equal(activeJob.phase, "training_lora");
+  assert.ok(activeJob.estimatedRemainingSeconds > 0);
+});
+
+test("simulateSandboxTest: runs test verification and computes invariant metrics", () => {
+  const model = PRESET_LORA_MODELS[0];
+  const preset = MODEL_SANDBOX_PRESET_PROMPTS[0];
+  const result = simulateSandboxTest(model, preset);
+
+  assert.equal(result.modelId, model.id);
+  assert.equal(result.presetId, preset.id);
+  assert.ok(result.logoIntegrityPct >= 97);
+  assert.ok(result.geometrySilhouetteIoU >= 96);
+  assert.equal(result.status, "passed");
+  assert.ok(result.renderTimeSec > 0);
+});

@@ -33,6 +33,7 @@ import {
   Volume2,
   Radio,
   SlidersHorizontal,
+  Activity,
 } from 'lucide-react';
 import {
   B2BCategory,
@@ -63,6 +64,8 @@ import {
 } from '../utils/b2bEnterpriseEngine';
 import { UserSubscription } from '../types/subscription';
 import { EnterpriseProductModelBuilderModal } from './EnterpriseProductModelBuilderModal';
+import { LoraTrainingStatusDashboard } from './LoraTrainingStatusDashboard';
+import { ModelSandbox } from './ModelSandbox';
 
 interface EnterpriseB2BTabProps {
   subscription?: UserSubscription;
@@ -76,9 +79,11 @@ export const EnterpriseB2BTab: React.FC<EnterpriseB2BTabProps> = ({
   onSendPromptToLeoStudio,
 }) => {
   const fileUploadId = useId();
-  // Sub-modules: lora_preservation, programmatic_sales, spokesperson_avatars, script_to_video, director_mode, brand_kit, roi_calculator, security_soc2
+  // Sub-modules: lora_preservation, training_dashboard, model_sandbox, programmatic_sales, spokesperson_avatars, script_to_video, director_mode, brand_kit, roi_calculator, security_soc2
   const [activeSubTab, setActiveSubTab] = useState<
     | 'lora_preservation'
+    | 'training_dashboard'
+    | 'model_sandbox'
     | 'programmatic_sales'
     | 'spokesperson_avatars'
     | 'script_to_video'
@@ -355,6 +360,28 @@ export const EnterpriseB2BTab: React.FC<EnterpriseB2BTabProps> = ({
             <Layers className="w-3.5 h-3.5" />
             <span>Product Preservation (LoRA)</span>
           </button>
+          <button
+            onClick={() => setActiveSubTab('training_dashboard')}
+            className={`px-3 py-2 text-xs font-medium rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+              activeSubTab === 'training_dashboard'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+            }`}
+          >
+            <Activity className="w-3.5 h-3.5" />
+            <span>Training Progress & GPU Telemetry</span>
+          </button>
+          <button
+            onClick={() => setActiveSubTab('model_sandbox')}
+            className={`px-3 py-2 text-xs font-medium rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+              activeSubTab === 'model_sandbox'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Model Consistency Sandbox</span>
+          </button>
 
           <button
             onClick={() => setActiveSubTab('programmatic_sales')}
@@ -455,11 +482,31 @@ export const EnterpriseB2BTab: React.FC<EnterpriseB2BTabProps> = ({
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-400">Trained Models:</span>
-                <span className="font-mono text-xs text-blue-400 font-medium">{loraModels.length} Active</span>
-                <span className="text-slate-700">|</span>
-                <span className="text-xs text-emerald-400 font-medium">100% Zero-Hallucination SLA</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveSubTab('training_dashboard')}
+                  className="px-2.5 py-1.5 text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-lg border border-slate-800 transition-colors flex items-center gap-1.5"
+                >
+                  <Activity className="w-3.5 h-3.5 text-blue-400" />
+                  <span>GPU Telemetry</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveSubTab('model_sandbox')}
+                  className="px-2.5 py-1.5 text-xs font-medium bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 rounded-lg border border-blue-500/30 transition-colors flex items-center gap-1.5"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Test in Sandbox</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsModelBuilderOpen(true)}
+                  className="px-2.5 py-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors flex items-center gap-1.5"
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>Train New LoRA</span>
+                </button>
               </div>
             </div>
 
@@ -727,6 +774,33 @@ export const EnterpriseB2BTab: React.FC<EnterpriseB2BTabProps> = ({
               </div>
             </div>
           </div>
+        )}
+
+        {/* SUBTAB: LORA TRAINING PROGRESS & GPU TELEMETRY */}
+        {activeSubTab === 'training_dashboard' && (
+          <LoraTrainingStatusDashboard
+            onOpenModelBuilder={() => setIsModelBuilderOpen(true)}
+            onOpenModelSandbox={(modelId) => {
+              if (modelId) setSelectedLoraId(modelId);
+              setActiveSubTab('model_sandbox');
+            }}
+            onModelTrained={(newModel) => {
+              setLoraModels((prev) => [newModel, ...prev]);
+              setSelectedLoraId(newModel.id);
+            }}
+          />
+        )}
+
+        {/* SUBTAB: MODEL CONSISTENCY SANDBOX */}
+        {activeSubTab === 'model_sandbox' && (
+          <ModelSandbox
+            loraModels={loraModels}
+            selectedModelId={selectedLoraId}
+            onSelectModel={(id) => setSelectedLoraId(id)}
+            onSendPromptToLeoStudio={onSendPromptToLeoStudio}
+            onOpenModelBuilder={() => setIsModelBuilderOpen(true)}
+            onOpenTrainingDashboard={() => setActiveSubTab('training_dashboard')}
+          />
         )}
 
         {/* SUBTAB 2: PROGRAMMATIC PERSONALIZED SALES VIDEO (CSV BULK BATCH) */}
@@ -1905,6 +1979,10 @@ export const EnterpriseB2BTab: React.FC<EnterpriseB2BTabProps> = ({
           setSelectedLoraId(newModel.id);
         }}
         onTestInLeoStudio={onSendPromptToLeoStudio}
+        onOpenSandbox={(modelId) => {
+          setSelectedLoraId(modelId);
+          setActiveSubTab('model_sandbox');
+        }}
         initialCategory={activeLora?.category || 'cosmetics'}
       />
     </div>

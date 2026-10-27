@@ -38,6 +38,7 @@ interface EnterpriseProductModelBuilderModalProps {
   onClose: () => void;
   onModelTrained?: (newModel: ProductLoraModel) => void;
   onTestInLeoStudio?: (promptWithToken: string) => void;
+  onOpenSandbox?: (modelId: string) => void;
   initialCategory?: B2BCategory;
 }
 
@@ -59,6 +60,7 @@ export const EnterpriseProductModelBuilderModal: React.FC<EnterpriseProductModel
   onClose,
   onModelTrained,
   onTestInLeoStudio,
+  onOpenSandbox,
   initialCategory = 'cosmetics',
 }) => {
   const fileInputId = useId();
@@ -681,6 +683,20 @@ export const EnterpriseProductModelBuilderModal: React.FC<EnterpriseProductModel
                         <Sparkles className="w-3.5 h-3.5" />
                         <span>Test in LEO Studio</span>
                       </button>
+
+                      {onOpenSandbox && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onOpenSandbox(trainedModel.id);
+                            onClose();
+                          }}
+                          className="px-3 py-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <Sliders className="w-3.5 h-3.5" />
+                          <span>Verify in Sandbox</span>
+                        </button>
+                      )}
 
                       <a
                         href={`#safetensors-${trainedModel.id}`}
