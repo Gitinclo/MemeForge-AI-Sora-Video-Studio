@@ -285,8 +285,12 @@ All Gemini model operations are handled server-side via Express routes:
 
 ---
 
-## ⚖️ Legal & Governance Documents
+## ⚖️ Documentation, Legal & Governance Hub
 
+- **[System Architecture (ARCHITECTURE.md)](ARCHITECTURE.md)**: Deep-dive into continuous spacetime ODE flow matching, 64-bit epoch arithmetic, and 3D holographic projection math.
+- **[Project Roadmap (ROADMAP.md)](ROADMAP.md)**: Release milestones from 2026 foundations to 2060 quantum-temporal capabilities and spatial eyewear streaming.
+- **[Support & Troubleshooting (SUPPORT.md)](SUPPORT.md)**: Help resources, issue filing guidelines, and self-service diagnostics.
+- **[Project Governance (GOVERNANCE.md)](GOVERNANCE.md)**: Meritocratic maintainer model, RFC decision-making process, and community guidelines.
 - **[Attribution Notice (NOTICE)](NOTICE)**: Explicit Apache-2.0 Section 4(d) attribution declaration for `Copyright 2026 MemeForge-AI Studio Contributors` and lead architect `Gitinclo`.
 - **[Privacy Policy (PRIVACY.md)](PRIVACY.md)**: Transparent disclosure of local client-side processing, ephemeral AI inference, and compliance with GDPR, CCPA, and Indian DPDPA.
 - **[Terms & Conditions (TERMS.md)](TERMS.md)**: Rules of use, commercial licensing rights, subscription billing terms (Rs. 999/mo & Rs. 99,999/mo), user content ownership, and liability limitations.

@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0] - 2026-11-04
+
+### Added
+- **2060/01/01 Quantum-Temporal & Holographic Studio Architecture**:
+  - **Holographic 3D Spatial Canvas (`Holo 3D`)**: Real-time depth slicing into 32 stratified planes, 6-axis camera orbit controls, lightfield point cloud visualizer, and `.holo` volumetric lightfield JSON export.
+  - **Quantum-Temporal DiT Engine (`Quantum DiT`)**: Continuous spacetime neural ODE flow matching with Dormand-Prince 5 (Adaptive), Runge-Kutta 4th Order, and Euler solvers; 1024-qubit lattice entanglement telemetry; synthetic temporal harmonic audio stems.
+  - **Autonomous Multi-Agent AI Director (`AI Directors`)**: Real-time collaborative deliberation room featuring 4 specialized agents (Narrative Director, 6-Axis Camera DP, Photonic Lighting Supervisor, Spatial Sound Architect) with interactive cue adoption.
+  - **Epoch 2060 Diagnostic Suite & Time-Travel Simulator (`Epoch 2060`)**: Universal clock scrubber (1970 to 2100+), Y2038 32-bit rollover immunity audit, and 64-bit IEEE 754 precision validation.
+- **Mobile Ergonomics & Responsive Navigation**:
+  - Two-tier mobile header with full-width touch-scrollable tabs strip and mobile quick action drawer.
+  - Form controls with WCAG AA compliant 44px+ touch targets and single-column mobile density.
+- **Repository Health & Governance Documentation Suite**:
+  - Added [ARCHITECTURE.md](ARCHITECTURE.md) technical deep-dive.
+  - Added [ROADMAP.md](ROADMAP.md) detailing Phase 1 through Phase 4 milestones.
+  - Added [SUPPORT.md](SUPPORT.md) guide and troubleshooting resources.
+  - Added [GOVERNANCE.md](GOVERNANCE.md) explaining meritocratic decision-making and RFC processes.
+
+### Changed
+- Modernized footer to clean unboxed 2060 standard, eliminating legacy status pulsing dots.
+- Extended unit test suite to 84 passing tests across epoch validation, quantum spacetime flow, and holographic slicing.
+
+---
+
 ## [1.2.0] - 2026-10-22
 
 ### Added

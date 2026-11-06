@@ -15,6 +15,10 @@ import { CinemaVfxEditorTab } from './components/CinemaVfxEditorTab';
 import { YouTubePublishTab } from './components/YouTubePublishTab';
 import { EnterpriseB2BTab } from './components/EnterpriseB2BTab';
 import { LegalDocsModal } from './components/LegalDocsModal';
+import { HoloSpatialCanvasTab } from './components/HoloSpatialCanvasTab';
+import { QuantumEngineHubTab } from './components/QuantumEngineHubTab';
+import { MultiAgentDirectorTab } from './components/MultiAgentDirectorTab';
+import { Epoch2060DiagnosticTab } from './components/Epoch2060DiagnosticTab';
 import { MEME_TEMPLATES } from './data/memeTemplates';
 import { UserSubscription } from './types/subscription';
 import {
@@ -69,10 +73,21 @@ import {
   Boxes,
   Youtube,
   Briefcase,
+  Box,
+  Cpu,
+  ShieldCheck,
+  MoreVertical,
+  X,
 } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'meme' | 'enterprise' | 'leo' | 'cinema' | 'youtube' | 'team' | 'market'>('enterprise');
+  const [activeTab, setActiveTab] = useState<
+    'quantum' | 'holo' | 'director' | 'epoch' | 'enterprise' | 'meme' | 'leo' | 'cinema' | 'youtube' | 'team' | 'market'
+  >('quantum');
+  const [quantumScenePrompt, setQuantumScenePrompt] = useState<string>(
+    '2060 Quantum temporal vortex cascading through neon spacetime crystals'
+  );
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [canvasSnapshotForYouTube, setCanvasSnapshotForYouTube] = useState<string | null>(null);
   const [leoPublishContext, setLeoPublishContext] = useState<{ title: string; prompt: string } | null>(null);
   const [isAndroidModalOpen, setIsAndroidModalOpen] = useState(false);
@@ -915,123 +930,199 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      {/* Top Main Navigation Header */}
-      <header className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/80 px-4 sm:px-6 py-3 flex items-center justify-between">
-        {/* Logo lockup */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 via-purple-600 to-indigo-600 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-amber-500/20">
-            <span className="text-xl">🔥</span>
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-base sm:text-lg font-black tracking-tight bg-gradient-to-r from-amber-400 via-purple-300 to-cyan-300 bg-clip-text text-transparent">
-                MemeForge AI
-              </h1>
-              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30 uppercase tracking-widest hidden sm:inline-block">
-                Studio
-              </span>
+      {/* Top Main Navigation Header - 2060 Cybernetic Dark HUD */}
+      <header className="sticky top-0 z-40 bg-[#080C14]/95 backdrop-blur-xl border-b border-slate-800/80 px-3 sm:px-6 py-2.5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2.5">
+        {/* Mobile Row 1 / Desktop Zone 1: Brand Wordmark & Mobile Quick Actions */}
+        <div className="flex items-center justify-between lg:justify-start gap-3 w-full lg:w-auto shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-600 to-purple-600 flex items-center justify-center text-slate-950 font-black shadow-md shadow-cyan-500/20 shrink-0">
+              <Cpu className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
-            <p className="text-[11px] text-slate-400 hidden sm:block">
-              Magic Caption • Live Editor • Crypto &amp; UPI Marketplace • LEO Video
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm sm:text-base font-extrabold tracking-tight text-white whitespace-nowrap">
+                  MemeForge 2060
+                </span>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/80 uppercase">
+                  2060.01.01
+                </span>
+              </div>
+              <div className="text-[10px] text-slate-400 hidden xl:flex items-center gap-1.5 font-mono">
+                <span>Quantum DiT</span>
+                <span aria-hidden="true">·</span>
+                <span>Holo 3D</span>
+                <span aria-hidden="true">·</span>
+                <span className="text-emerald-400">64-Bit Resilient</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Right: Compact Plan & Overflow Menu (Hidden on Desktop) */}
+          <div className="flex lg:hidden items-center gap-2">
+            <button
+              onClick={() => {
+                setSubscriptionModalCategory(subscription.plan === 'company_team' ? 'company' : 'individual');
+                setIsSubscriptionModalOpen(true);
+              }}
+              className="min-h-[38px] px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 bg-slate-900 border border-slate-800 text-amber-300 hover:text-white"
+            >
+              <Crown className="w-3.5 h-3.5 text-amber-400" />
+              <span>
+                {subscription.isActive && subscription.plan === 'company_team'
+                  ? 'Team'
+                  : subscription.isActive && subscription.plan === 'india_pro'
+                  ? 'Pro'
+                  : 'Plans'}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="min-h-[38px] min-w-[38px] p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-colors"
+              title="More Actions"
+            >
+              {isMobileMenuOpen ? <X className="w-4 h-4 text-cyan-400" /> : <MoreVertical className="w-4 h-4" />}
+            </button>
           </div>
         </div>
 
-        {/* Studio Navigation Tabs */}
-        <div className="flex items-center p-1 bg-slate-900 rounded-2xl border border-slate-800">
+        {/* Mobile Row 2 / Desktop Zone 2: Studio Navigation Tabs with Smooth Horizontal Scroll */}
+        <div className="w-full lg:w-auto overflow-x-auto touch-pan-x flex items-center gap-1.5 p-1 bg-slate-900/90 rounded-xl border border-slate-800 no-scrollbar">
+          <button
+            onClick={() => setActiveTab('quantum')}
+            className={`min-h-[38px] px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-all flex items-center gap-1.5 ${
+              activeTab === 'quantum'
+                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Cpu className="w-3.5 h-3.5" />
+            <span>Quantum DiT</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('holo')}
+            className={`min-h-[38px] px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-all flex items-center gap-1.5 ${
+              activeTab === 'holo'
+                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Box className="w-3.5 h-3.5" />
+            <span>Holo 3D</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('director')}
+            className={`min-h-[38px] px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-all flex items-center gap-1.5 ${
+              activeTab === 'director'
+                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Users className="w-3.5 h-3.5" />
+            <span>AI Directors</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('epoch')}
+            className={`min-h-[38px] px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-all flex items-center gap-1.5 ${
+              activeTab === 'epoch'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Epoch 2060</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('enterprise')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`min-h-[38px] px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-all flex items-center gap-1.5 ${
               activeTab === 'enterprise'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <Briefcase className="w-3.5 h-3.5 text-blue-400" />
-            <span className="hidden sm:inline">Enterprise B2B</span>
-            <span className="sm:hidden">B2B</span>
+            <span>Enterprise B2B</span>
           </button>
 
           <button
             onClick={() => setActiveTab('meme')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`min-h-[38px] px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-all flex items-center gap-1.5 ${
               activeTab === 'meme'
                 ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <span className="text-sm">🎭</span>
-            <span>Meme Studio</span>
+            <span className="text-xs">🎭</span>
+            <span>Meme 2D</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('cinema')}
+            className={`min-h-[38px] px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-all flex items-center gap-1.5 ${
+              activeTab === 'cinema'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Boxes className="w-3.5 h-3.5" />
+            <span>Cinema VFX</span>
           </button>
 
           <button
             onClick={() => setActiveTab('market')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`min-h-[38px] px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-all flex items-center gap-1.5 ${
               activeTab === 'market'
-                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <ShoppingBag className="w-3.5 h-3.5" />
-            <span>Marketplace</span>
+            <span>Market</span>
           </button>
 
           <button
             onClick={() => setActiveTab('leo')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`min-h-[38px] px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-all flex items-center gap-1.5 ${
               activeTab === 'leo'
                 ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <Film className="w-3.5 h-3.5" />
-            <span>LEO Video</span>
+            <span>LEO 8K</span>
           </button>
 
           <button
-            onClick={() => setActiveTab('cinema')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-              activeTab === 'cinema'
-                ? 'bg-gradient-to-r from-cyan-500 via-indigo-600 to-purple-600 text-white shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Boxes className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Cinema VFX (32K)</span>
-            <span className="sm:hidden">32K VFX</span>
-          </button>
-
-          <button
-            onClick={() => {
-              handleOpenYouTubePublishFromMeme();
-            }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            onClick={() => handleOpenYouTubePublishFromMeme()}
+            className={`min-h-[38px] px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-all flex items-center gap-1.5 ${
               activeTab === 'youtube'
                 ? 'bg-red-600 text-white shadow-md shadow-red-600/30'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <Youtube className="w-3.5 h-3.5 text-red-500" />
-            <span className="hidden sm:inline">YouTube</span>
-            <span className="sm:hidden">YT</span>
+            <span>YouTube</span>
           </button>
 
           <button
             onClick={() => setActiveTab('team')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`min-h-[38px] px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-all flex items-center gap-1.5 ${
               activeTab === 'team'
-                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
+                ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/20'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <Users className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Team Hub</span>
-            <span className="sm:hidden">Team</span>
+            <span>Team</span>
           </button>
         </div>
 
-        {/* Top Right Quick Actions */}
-        <div className="flex items-center gap-2">
+        {/* Desktop Zone 3: Quick Action Buttons (Hidden on Mobile) */}
+        <div className="hidden lg:flex items-center gap-2 shrink-0">
           {/* PWA Install Button */}
           <PWAInstallButton />
 
@@ -1041,12 +1132,12 @@ export default function App() {
               setSubscriptionModalCategory(subscription.plan === 'company_team' ? 'company' : 'individual');
               setIsSubscriptionModalOpen(true);
             }}
-            className={`p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shadow-sm ${
+            className={`min-h-[38px] px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shadow-sm ${
               subscription.isActive && subscription.plan === 'company_team'
                 ? 'bg-gradient-to-r from-purple-600/30 via-indigo-600/30 to-cyan-500/30 hover:from-purple-600/40 text-cyan-300 border border-cyan-500/50'
                 : subscription.isActive && subscription.plan === 'india_pro'
                 ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 hover:from-emerald-500/30 text-emerald-300 border border-emerald-500/40'
-                : 'bg-gradient-to-r from-amber-500/20 via-purple-500/20 to-indigo-500/20 hover:from-amber-500/30 text-amber-300 hover:text-white border border-amber-500/40 animate-pulse'
+                : 'bg-gradient-to-r from-amber-500/20 via-purple-500/20 to-indigo-500/20 hover:from-amber-500/30 text-amber-300 hover:text-white border border-amber-500/40'
             }`}
             title="Manage Subscriptions: Individual Pro (₹999/mo) or Team Enterprise (₹99,999/mo)"
           >
@@ -1062,58 +1153,141 @@ export default function App() {
               </span>
               <span className="h-1/3 bg-[#138808] w-full" />
             </span>
-            <span className="hidden sm:inline">
+            <span>
               {subscription.isActive && subscription.plan === 'company_team'
-                ? 'Team Active (Rs. 99,999)'
+                ? 'Team (₹99,999)'
                 : subscription.isActive && subscription.plan === 'india_pro'
-                ? 'Pro Active (Rs. 999)'
-                : 'Plans: Rs. 999 / Rs. 99,999'}
-            </span>
-            <span className="sm:hidden">
-              {subscription.isActive && subscription.plan === 'company_team'
-                ? 'Team'
-                : subscription.isActive && subscription.plan === 'india_pro'
-                ? 'Pro'
-                : 'Plans'}
+                ? 'Pro (₹999)'
+                : 'Plans: ₹999 / ₹99,999'}
             </span>
           </button>
 
           {/* Android APK & AAB Packaging Modal Button */}
           <button
             onClick={() => setIsAndroidModalOpen(true)}
-            className="p-2 sm:px-3 sm:py-2 bg-gradient-to-r from-emerald-500/15 to-cyan-500/15 hover:from-emerald-500/25 hover:to-cyan-500/25 text-emerald-300 hover:text-emerald-200 rounded-xl border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm"
+            className="min-h-[38px] px-3 py-1.5 bg-gradient-to-r from-emerald-500/15 to-cyan-500/15 hover:from-emerald-500/25 hover:to-cyan-500/25 text-emerald-300 hover:text-emerald-200 rounded-xl border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm"
             title="Build and export Android APK & AAB packages"
           >
             <Smartphone className="w-4 h-4 text-emerald-400" />
-            <span className="hidden md:inline">Export APK &amp; AAB</span>
-            <span className="md:hidden">APK / AAB</span>
+            <span>Export APK</span>
           </button>
 
           {/* AI Co-Director / Comedy writer button */}
           <button
             onClick={() => setIsDirectorChatOpen(true)}
-            className="p-2 sm:px-3 sm:py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-300 rounded-xl border border-slate-800 text-xs font-bold flex items-center gap-1.5 transition-colors"
+            className="min-h-[38px] px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-300 rounded-xl border border-slate-800 text-xs font-bold flex items-center gap-1.5 transition-colors"
             title="Ask AI Co-Director for joke ideas"
           >
             <MessageSquare className="w-4 h-4 text-purple-400" />
-            <span className="hidden lg:inline">AI Co-Director</span>
+            <span>AI Director</span>
           </button>
 
           {/* Core Feature: Magic Caption Prominent Button */}
           {activeTab === 'meme' && (
             <button
               onClick={() => setIsMagicCaptionOpen(true)}
-              className="px-3.5 py-2 bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-black text-xs rounded-xl flex items-center gap-1.5 shadow-lg shadow-purple-500/25 transition-all hover:scale-105 active:scale-95 animate-pulse"
+              className="min-h-[38px] px-3.5 py-1.5 bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-lg shadow-purple-500/25 transition-all"
             >
               <Wand2 className="w-4 h-4 text-amber-300" />
               <span>Magic Caption</span>
             </button>
           )}
         </div>
+
+        {/* Mobile Quick Action Dropdown Drawer */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden w-full p-3 rounded-xl bg-slate-900/95 border border-slate-800 flex flex-col gap-2 mt-1">
+            <div className="text-[11px] font-mono text-cyan-400 border-b border-slate-800 pb-1.5 flex justify-between items-center">
+              <span>QUICK ACTIONS</span>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-400 hover:text-white">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+              <button
+                onClick={() => {
+                  setIsAndroidModalOpen(true);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 flex items-center gap-2 text-emerald-300"
+              >
+                <Smartphone className="w-4 h-4" />
+                <span>Export APK / AAB</span>
+              </button>
+              <button
+                onClick={() => {
+                  setIsDirectorChatOpen(true);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 flex items-center gap-2 text-purple-300"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>AI Director Chat</span>
+              </button>
+              <button
+                onClick={() => {
+                  setLegalDocModal('terms');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 flex items-center gap-2 text-slate-300"
+              >
+                <span>Terms & Conditions</span>
+              </button>
+              <button
+                onClick={() => {
+                  setLegalDocModal('privacy');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 flex items-center gap-2 text-slate-300"
+              >
+                <span>Privacy Policy</span>
+              </button>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Studio Viewport */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 space-y-6">
+        {/* 2060 TAB 1: QUANTUM-TEMPORAL DIT ENGINE HUB */}
+        {activeTab === 'quantum' && (
+          <QuantumEngineHubTab
+            initialPrompt={quantumScenePrompt}
+            onSendToCinema={({ title, prompt }) => {
+              setLeoPublishContext({ title, prompt });
+              setActiveTab('cinema');
+            }}
+          />
+        )}
+
+        {/* 2060 TAB 2: HOLOGRAPHIC 3D SPATIAL CANVAS */}
+        {activeTab === 'holo' && (
+          <HoloSpatialCanvasTab
+            current2DTextLayers={textLayers}
+            current2DImageSrc={currentImageSrc}
+            onSendToQuantum={(prompt) => {
+              setQuantumScenePrompt(prompt);
+              setActiveTab('quantum');
+            }}
+          />
+        )}
+
+        {/* 2060 TAB 3: AUTONOMOUS MULTI-AGENT AI DIRECTORS */}
+        {activeTab === 'director' && (
+          <MultiAgentDirectorTab
+            onApplyCameraAction={(_params) => {
+              setActiveTab('holo');
+            }}
+            onSendToQuantum={(prompt) => {
+              setQuantumScenePrompt(prompt);
+              setActiveTab('quantum');
+            }}
+          />
+        )}
+
+        {/* 2060 TAB 4: EPOCH 2060 DIAGNOSTIC SUITE & TIME-TRAVEL SIMULATOR */}
+        {activeTab === 'epoch' && <Epoch2060DiagnosticTab />}
+
         {/* TAB 0: ENTERPRISE B2B VIDEO SUITE */}
         {activeTab === 'enterprise' && (
           <EnterpriseB2BTab
@@ -1448,11 +1622,14 @@ export default function App() {
         initialDoc={legalDocModal || 'terms'}
       />
 
-      {/* Footer info bar */}
+      {/* Footer info bar - 2060 Clean Unboxed Typography */}
       <footer className="mt-auto border-t border-slate-900 bg-slate-950 px-4 py-3 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span>MemeForge AI Studio • 2026 Edition</span>
+        <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
+          <span>MemeForge 2060 Studio</span>
+          <span aria-hidden="true">·</span>
+          <span>Universal 2060.01.01 Architecture</span>
+          <span aria-hidden="true">·</span>
+          <span className="text-emerald-400 font-semibold">64-Bit Resilient</span>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-3 text-[11px] text-slate-500">
           <span className="hidden md:inline">

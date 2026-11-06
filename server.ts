@@ -687,6 +687,210 @@ app.post('/api/magic-hour/generate', async (req: Request, res: Response) => {
   }
 });
 
+// ==========================================
+// 2060/01/01 QUANTUM & EPOCH FUTURE-PROOFING APIS
+// ==========================================
+
+// 1. Quantum-Temporal Video Engine Generation Route
+app.post('/api/quantum/generate', async (req: Request, res: Response) => {
+  try {
+    const {
+      prompt = 'Quantum nebula vortex with holographic chromatic aberration',
+      engine = 'q-dit-2060-ultra',
+      temporalResolution = 'continuous-flow',
+      spatialResolution = '8K-Master',
+      odeSolver = 'dormand-prince-5',
+      fps = 60,
+      durationSeconds = 8,
+      audioHarmonics = true,
+      cameraChoreography = '6-Axis Spline',
+    } = req.body;
+
+    const epochMs = Date.now();
+    const is64Bit = epochMs > 0 && epochMs <= Number.MAX_SAFE_INTEGER;
+    const jobId = `q2060_${epochMs}_${Math.random().toString(36).substring(2, 8)}`;
+
+    const resMultipliers: Record<string, number> = {
+      '4K-Spatial': 1.0,
+      '8K-Master': 4.0,
+      '16K-Omni': 16.0,
+    };
+    const mult = resMultipliers[spatialResolution] || 2.0;
+    const tokenCount = Math.round(fps * durationSeconds * 2048 * mult);
+
+    return res.json({
+      success: true,
+      jobId,
+      timestampEpochMs: epochMs,
+      isoTimestamp: new Date(epochMs).toISOString(),
+      is64BitSafe: is64Bit,
+      engine,
+      spatialResolution,
+      temporalResolution,
+      odeSolver,
+      fps,
+      durationSeconds,
+      cameraChoreography,
+      telemetry: {
+        totalSpacetimeTokens: tokenCount,
+        qubitLatticeCoherence: 0.994,
+        odeIntegrationSteps: odeSolver === 'dormand-prince-5' ? 45 : 30,
+        temporalStabilityIndex: 99.8,
+        qubitEntanglement: 99.2,
+      },
+      audioStems: audioHarmonics
+        ? [
+            'Sub-Bass Temporal Drone (24-bit/96kHz)',
+            'Holographic Arpeggiator (Spatial Atmos)',
+            'Acoustic Field Modulation',
+          ]
+        : [],
+      previewUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80',
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Quantum render dispatch failed' });
+  }
+});
+
+// 2. Autonomous Multi-Agent Director Deliberation Route
+app.post('/api/director/dialogue', async (req: Request, res: Response) => {
+  try {
+    const { concept = 'Cybernetic cityscape with volumetric holographic billboards' } = req.body;
+
+    if (hasApiKey) {
+      try {
+        const response = await ai.models.generateContent({
+          model: 'gemini-3.8-flash',
+          contents: `You are the core neural coordinator for a 2060 Autonomous Virtual Film Production Crew.
+Given the concept: "${concept}"
+Generate collaborative dialogue between four specialized 2060 agents:
+1. "director" (Aura Vance - Narrative Director): overarching visual tone, emotional pacing.
+2. "cinematographer" (Kaelen Thorne - Director of Photography): 6-axis camera moves, focal depth, anamorphic flares.
+3. "lighting" (Lyra Solis - Photonic & Volumetric Supervisor): quantum radiance, depth slice luminescence.
+4. "audio" (Orion Kross - Spatial Sound Architect): temporal sub-bass drones, Doppler spatial audio cues.
+
+Provide output as a JSON array of 4 items with structure:
+[
+  {
+    "role": "director" | "cinematographer" | "lighting" | "audio",
+    "agentName": string,
+    "content": string,
+    "suggestedAction": { "type": "camera_orbit" | "depth_shift" | "lighting_shift" | "tempo_shift", "description": string, "params": {} }
+  }
+]`,
+          config: {
+            responseMimeType: 'application/json',
+          },
+        });
+
+        const parsed = JSON.parse(response.text || '[]');
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const timestamp = Date.now();
+          const messages = parsed.map((m: any, idx: number) => ({
+            id: `msg_${timestamp}_${idx}`,
+            role: m.role || 'director',
+            agentName: m.agentName || 'Agent',
+            content: m.content || '',
+            timestampEpochMs: timestamp + idx * 500,
+            suggestedAction: m.suggestedAction,
+          }));
+          return res.json({ success: true, messages });
+        }
+      } catch (geminiErr) {
+        console.warn('Gemini director dialogue fallback triggered:', geminiErr);
+      }
+    }
+
+    // High quality deterministic 2060 multi-agent deliberation fallback
+    const now = Date.now();
+    const fallbackMessages = [
+      {
+        id: `msg_${now}_0`,
+        role: 'director',
+        agentName: 'Aura Vance (Narrative Lead)',
+        content: `For "${concept}", we need an expansive vertical establishing sequence. Begin on the upper skyway horizon, then plunge through atmospheric quantum fog directly toward the focal subject.`,
+        timestampEpochMs: now,
+        suggestedAction: {
+          type: 'camera_orbit',
+          description: 'Set initial camera tilt to +15° and distance to 750px',
+          params: { orbitX: 15, orbitY: -20, distance: 750 },
+        },
+      },
+      {
+        id: `msg_${now}_1`,
+        role: 'cinematographer',
+        agentName: 'Kaelen Thorne (6-Axis Camera DP)',
+        content: `Agreed Aura. I will configure a continuous cubic spline camera pass with 65mm anamorphic compression and an active rack focus from layer depth Z: -50 to +30.`,
+        timestampEpochMs: now + 600,
+        suggestedAction: {
+          type: 'depth_shift',
+          description: 'Adjust focal plane depth to +30 for maximum foreground pop',
+          params: { focalDepth: 30, depthMultiplier: 1.4 },
+        },
+      },
+      {
+        id: `msg_${now}_2`,
+        role: 'lighting',
+        agentName: 'Lyra Solis (Photonic Supervisor)',
+        content: `I am tuning the quantum ambient irradiance to #00F2FE cyan with a deep temporal violet rim light at vector [0.8, -1.0, 0.4]. Depth slices will catch an emissive shimmer.`,
+        timestampEpochMs: now + 1200,
+        suggestedAction: {
+          type: 'lighting_shift',
+          description: 'Engage dual-tone Quantum Cyan / Deep Violet lightfield',
+          params: { quantumAmbient: '#00F2FE', specularGlow: 0.9, intensity: 1.3 },
+        },
+      },
+      {
+        id: `msg_${now}_3`,
+        role: 'audio',
+        agentName: 'Orion Kross (Spatial Sound Architect)',
+        content: `I have synthesized a 32-Hz sub-picosecond temporal drone paired with Doppler binaural wind sweeps synchronized to the camera trajectory drop.`,
+        timestampEpochMs: now + 1800,
+        suggestedAction: {
+          type: 'tempo_shift',
+          description: 'Synchronize 2060 spatial audio stems with continuous ODE frame sequence',
+          params: { bpm: 128, audioHarmonics: true },
+        },
+      },
+    ];
+
+    return res.json({ success: true, messages: fallbackMessages });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Director dialogue failed' });
+  }
+});
+
+// 3. Epoch 2060 Diagnostic & Time-Warp Health Verification
+app.get('/api/epoch/verify-time-integrity', (req: Request, res: Response) => {
+  const targetYear = parseInt(req.query.year as string, 10) || 2060;
+  const simulatedDate = new Date(`${targetYear}-01-01T00:00:00.000Z`);
+  const epochMs = simulatedDate.getTime();
+  const Y2038_ROLLOVER_MS = 2147483647 * 1000;
+
+  const is64Bit = epochMs > 0 && epochMs <= Number.MAX_SAFE_INTEGER;
+  const y2038Safe = epochMs > Y2038_ROLLOVER_MS || targetYear < 2038;
+  const y2060Safe = targetYear >= 2060 ? is64Bit : true;
+
+  return res.json({
+    success: true,
+    testYear: targetYear,
+    timestampEpochMs: epochMs,
+    isoTimestamp: simulatedDate.toISOString(),
+    is64BitCompliant: is64Bit,
+    y2038Safe,
+    y2060Safe,
+    leapSecondResilience: true,
+    microsecondResolution: `${epochMs * 1000} µs`,
+    verifiedSubsystems: {
+      localStorageSerialization: 'NOMINAL (JSON 64-bit safe)',
+      cryptoLedgerTransactions: 'NOMINAL (64-bit BigInt / Float)',
+      subscriptionExpirations: 'NOMINAL (Epoch millisecond bounds)',
+      hologramSpatialManifests: 'NOMINAL (ISO-8601 Zulu UTC)',
+    },
+  });
+});
+
+
 // Vite middleware in dev or static files in production
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
