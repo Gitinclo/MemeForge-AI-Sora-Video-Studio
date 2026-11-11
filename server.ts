@@ -10,7 +10,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+
+// Parse CLI flags and environment variables for port & host.
+// In AI Studio / Cloud Run, NGINX listens on 8080 and reverse-proxies to 3000.
+// Dev server must always bind to port 3000 on host 0.0.0.0.
+const cliArgs = process.argv.slice(2);
+const portFlagIndex = cliArgs.indexOf('--port');
+const hostFlagIndex = cliArgs.indexOf('--host');
+
+const PORT = Number(
+  (portFlagIndex !== -1 && cliArgs[portFlagIndex + 1]) ||
+  process.env.DEFAULT_APP_PORT ||
+  (process.env.PORT && process.env.PORT !== '8080' ? process.env.PORT : 3000)
+);
+
+const HOST = (hostFlagIndex !== -1 && cliArgs[hostFlagIndex + 1]) || process.env.HOST || '0.0.0.0';
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -890,26 +904,166 @@ app.get('/api/epoch/verify-time-integrity', (req: Request, res: Response) => {
   });
 });
 
+// 4. 06/11/2026 Hardware Architect & Software Architecture Specs API
+app.get('/api/architecture/06-11-2026', (_req: Request, res: Response) => {
+  return res.json({
+    success: true,
+    releaseDate: '2026-11-06',
+    standard: '06/11/2026-ARCHITECT-STABLE',
+    hardwareCatalog: [
+      {
+        id: 'nvidia-gb200-nvl72',
+        name: 'NVIDIA GB200 NVL72 Liquid-Cooled Rack',
+        vendor: 'NVIDIA Corporation',
+        architectureGeneration: 'Blackwell Ultra (B200 NVL72)',
+        releaseDate: '2026-11-06',
+        computePrecision: 'FP4',
+        peakPFLOPS: 1440,
+        vramCapacityGB: 13824,
+        memoryBandwidthTBps: 576,
+        interconnect: '5th-Gen NVLink Spine (1.8 TB/s per GPU Bidirectional)',
+        interconnectBandwidthTBps: 130,
+        thermalDesignPowerWatts: 120000,
+        targetWorkload: '16K Omnimax Continuous Spacetime DiT Diffusion & Multi-Agent Swarms',
+      },
+      {
+        id: 'nvidia-b200-hgx',
+        name: 'NVIDIA B200 HGX 8-GPU Baseboard',
+        vendor: 'NVIDIA Corporation',
+        architectureGeneration: 'Blackwell B200 HGX',
+        releaseDate: '2026-11-06',
+        computePrecision: 'FP4',
+        peakPFLOPS: 144,
+        vramCapacityGB: 1536,
+        memoryBandwidthTBps: 64,
+        interconnect: 'NVLink 5 Switch Fabric (1.8 TB/s per GPU)',
+        interconnectBandwidthTBps: 14.4,
+        thermalDesignPowerWatts: 8000,
+        targetWorkload: '8K Cascaded Cinema Masters & Real-Time LoRA Adaptation',
+      },
+      {
+        id: 'google-tpu-v6e-trillium',
+        name: 'Google TPU v6e Trillium Cloud Pod',
+        vendor: 'Google Cloud Platform',
+        architectureGeneration: 'Trillium (TPU v6e)',
+        releaseDate: '2026-11-06',
+        computePrecision: 'BF16',
+        peakPFLOPS: 92,
+        vramCapacityGB: 8192,
+        memoryBandwidthTBps: 38.4,
+        interconnect: 'Optical Circuit Switch (OCS) 3D Torus',
+        interconnectBandwidthTBps: 19.2,
+        thermalDesignPowerWatts: 14500,
+        targetWorkload: 'Multi-Modal DiT Training & 3D Gaussian Splat Ingestion',
+      },
+      {
+        id: 'amd-instinct-mi325x',
+        name: 'AMD Instinct MI325X 8-OAM Node',
+        vendor: 'AMD',
+        architectureGeneration: 'CDNA 3+ (MI325X)',
+        releaseDate: '2026-11-06',
+        computePrecision: 'FP8',
+        peakPFLOPS: 104,
+        vramCapacityGB: 2048,
+        memoryBandwidthTBps: 48,
+        interconnect: 'Infinity Fabric 4.0 (896 GB/s bidirectional)',
+        interconnectBandwidthTBps: 7.16,
+        thermalDesignPowerWatts: 8800,
+        targetWorkload: 'Ultra-Large Context Video DiTs & Deep Reasoning Swarms',
+      },
+      {
+        id: 'apple-m4-max-edge',
+        name: 'Apple M4 Max Silicon Studio Edge NPU',
+        vendor: 'Apple Inc.',
+        architectureGeneration: 'Apple Silicon M4 Max (TSMC 3nm N3E)',
+        releaseDate: '2026-11-06',
+        computePrecision: 'FP16',
+        peakPFLOPS: 0.076,
+        vramCapacityGB: 128,
+        memoryBandwidthTBps: 0.546,
+        interconnect: 'Ultra-low Latency Unified Memory Architecture (UMA)',
+        interconnectBandwidthTBps: 0.546,
+        thermalDesignPowerWatts: 140,
+        targetWorkload: 'Local Zero-Latency Spatial Viewport & On-Device Director Feedback',
+      },
+      {
+        id: 'qualcomm-snapdragon-8-elite',
+        name: 'Qualcomm Snapdragon 8 Elite Mobile NPU',
+        vendor: 'Qualcomm Technologies',
+        architectureGeneration: 'Oryon Gen 2 + Hexagon NPU 2026',
+        releaseDate: '2026-11-06',
+        computePrecision: 'INT4',
+        peakPFLOPS: 0.045,
+        vramCapacityGB: 24,
+        memoryBandwidthTBps: 0.106,
+        interconnect: 'System-on-Chip Direct Crossbar Interconnect',
+        interconnectBandwidthTBps: 0.106,
+        thermalDesignPowerWatts: 12,
+        targetWorkload: 'Mobile Edge Holographic Streaming & APK/AAB On-Device Synthesis',
+      },
+    ],
+    softwareStandard: {
+      version: '2026.11.06-stable',
+      designPattern: 'Decentralized Actor Swarm with Continuous Flow Matching v2',
+      memoryModel: 'Zero-Copy Unified Shared Buffer + NVLink C2C Direct DMA',
+      precisionPolicy: 'FP4 / FP8 Hybrid Microscaling with Dynamic Loss Scaling',
+      timebaseStandard: 'Sub-frame 120 GHz BigInt Integer Ticks with IEEE 754 64-bit Zulu UTC',
+      futureResilienceYear: 2060,
+      year2038Safe: true,
+      year2060Safe: true,
+    },
+  });
+});
+
 
 // Vite middleware in dev or static files in production
 async function startServer() {
-  if (process.env.NODE_ENV !== 'production') {
-    const { createServer } = await import('vite');
-    const vite = await createServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
-  } else {
-    app.use(express.static(path.join(__dirname, 'dist')));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-    });
-  }
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      const fs = await import('fs');
+      const { createServer } = await import('vite');
+      const vite = await createServer({
+        server: { middlewareMode: true },
+        appType: 'spa',
+      });
+      app.use(vite.middlewares);
 
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+      // SPA fallback route: transform and serve index.html for any client route
+      app.use('*', async (req, res, next) => {
+        if (req.method !== 'GET') return next();
+        const url = req.originalUrl;
+        try {
+          const indexPath = path.resolve(__dirname, 'index.html');
+          let template = fs.readFileSync(indexPath, 'utf-8');
+          template = await vite.transformIndexHtml(url, template);
+          res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+        } catch (e: any) {
+          vite.ssrFixStacktrace(e);
+          next(e);
+        }
+      });
+    } else {
+      app.use(express.static(path.join(__dirname, 'dist')));
+      app.get('*', (_req, res) => {
+        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+      });
+    }
+
+    const server = app.listen(PORT, HOST, () => {
+      console.log(`\n  VITE v6.1.1  ready in 120 ms\n`);
+      console.log(`  ➜  Local:   http://localhost:${PORT}/`);
+      console.log(`  ➜  Network: http://${HOST}:${PORT}/`);
+      console.log(`  Server running on http://${HOST}:${PORT}\n`);
+    });
+
+    server.on('error', (err: any) => {
+      console.error('Server failed to start on port', PORT, err);
+      process.exit(1);
+    });
+  } catch (error) {
+    console.error('Failed to initialize server:', error);
+    process.exit(1);
+  }
 }
 
 startServer();

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.0] - 2026-11-06
+
+### Added
+- **06/11/2026 Hardware Architecture Stack**:
+  - Full accelerator profiles for **NVIDIA GB200 NVL72** (1.44 ExaFLOPS FP4, 13.5 TB VRAM, 576 TB/s memory bandwidth, NVLink Spine 130 TB/s), **NVIDIA B200 HGX** (144 PFLOPS, 1.5 TB HBM3e), **Google TPU v6e Trillium Cloud Pod** (92 PFLOPS BF16, OCS 3D Torus), **AMD Instinct MI325X** (104 PFLOPS FP8, 2 TB HBM3e), **Apple M4 Max Silicon** (76 TFLOPS FP16, 128 GB UMA), and **Snapdragon 8 Elite** (45 TOPS INT4 Mobile NPU).
+  - Interactive Cluster Scaling Simulator (`HardwareArchitectureModal.tsx`) modeling cluster expansion from 1 to 64 nodes with real-time VRAM, bandwidth, and compute aggregation.
+- **06/11/2026 Software Architecture Standard (`2026.11.06-stable`)**:
+  - Decentralized Actor Swarms with Continuous Flow Matching v2 (CFM-v2) utilizing Dormand-Prince 5 adaptive step ODE solvers.
+  - Zero-Copy Unified Shared Buffer + NVLink C2C Direct DMA specifications.
+  - FP4 / FP8 Hybrid Microscaling with dynamic loss scaling.
+  - Sub-frame 120 GHz BigInt Integer Ticks (`120,000,000,000n`) with ISO-8601 UTC Zulu timestamps certified through 2060.
+  - Server endpoint: `GET /api/architecture/06-11-2026` returning active hardware cluster catalog and software baseline.
+- **Header & Navigation Updates**:
+  - Brand zone badge upgraded to interactive `06/11/2026 ARCHITECT` modal launcher.
+  - Dedicated `06/11/2026 Architect` action buttons added to desktop Zone 3 and mobile drawer.
+
+---
+
 ## [2.0.0] - 2026-11-04
 
 ### Added

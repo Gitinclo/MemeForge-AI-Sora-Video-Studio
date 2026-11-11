@@ -7,6 +7,7 @@
 [![Fairlight Audio](https://img.shields.io/badge/Fairlight%20Audio-192%20kHz%20%7C%2032--bit%20Float-10b981?style=for-the-badge)](https://web.dev/web-audio-basics/)
 [![Android APK & AAB](https://img.shields.io/badge/Android-APK%20%26%20AAB%20Offline%20Build-f59e0b?style=for-the-badge&logo=android)](https://developer.android.com/)
 [![UPI & Subscriptions](https://img.shields.io/badge/India%20Billing-Rs.%20999%20%7C%20Rs.%2099%2C999-6366f1?style=for-the-badge)](https://www.npci.org.in/)
+[![06/11/2026 Architecture](https://img.shields.io/badge/Architecture-06%2F11%2F2026%20SOTA-06b6d4?style=for-the-badge)](ARCHITECTURE.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 
 ---
@@ -15,12 +16,14 @@
 
 **MemeForge AI Studio** is a unified viral creation and cinema-grade production workstation. It bridges the gap between viral internet culture and high-end film engineering:
 
-1. **Meme Studio**: Multimodal Gemini Vision auto-captioning, live draggable typography canvas, 16+ trending vector templates, sticker overlays, and synthesized multi-track audio layers.
-2. **Marketplace & Crypto/UPI**: Buy and sell viral templates using Web3 wallets (ETH, SOL, MEME, USDT) or Indian UPI AutoPay (GPay, PhonePe, Paytm, BHIM).
-3. **LEO / Veo 3 Video Studio**: AI video generation scaling from 15 seconds up to **100 hours maximum duration** in 4K Ultra with camera motion controls and prompt expansion.
-4. **Cinema VFX Studio Master**: A hybrid workstation combining the best of **Adobe Premiere Pro** (multi-track precision editing & trimming), **DaVinci Resolve Studio** (ACES 2.0 color science, 3D LUTs & real-time scopes), and **Fusion / Fairlight** (AI node effects & 192 kHz 32-bit float audio).
-5. **Team Hub & Subscriptions**: 50-seat team workspace with granular RBAC permissions, version rollback snapshots, encrypted asset vaults, and localized Indian subscriptions (Rs. 999/mo Individual Pro & Rs. 99,999/mo Corporate Enterprise).
-6. **Mobile Packaging & Security**: Offline Android APK & AAB bundle generation with strict security policies protecting developer credentials.
+1. **06/11/2026 Hardware & Software Architect Stack**: SOTA compute accelerator catalog (NVIDIA GB200 NVL72 1.44 EF, B200 HGX, TPU v6e Trillium, AMD MI325X, M4 Max, Snapdragon 8 Elite), dynamic cluster scaling (1 to 64 nodes), Continuous Flow Matching v2, and NVLink C2C direct DMA.
+2. **2060 Quantum & Holographic Studio**: 3D volumetric depth slicing (.holo export), Dormand-Prince 5 ODE spacetime flow solver, and 4-agent autonomous AI director suite.
+3. **Meme Studio**: Multimodal Gemini Vision auto-captioning, live draggable typography canvas, 16+ trending vector templates, sticker overlays, and synthesized multi-track audio layers.
+4. **Marketplace & Crypto/UPI**: Buy and sell viral templates using Web3 wallets (ETH, SOL, MEME, USDT) or Indian UPI AutoPay (GPay, PhonePe, Paytm, BHIM).
+5. **LEO / Veo 3 Video Studio**: AI video generation scaling from 15 seconds up to **100 hours maximum duration** in 4K Ultra with camera motion controls and prompt expansion.
+6. **Cinema VFX Studio Master**: A hybrid workstation combining the best of **Adobe Premiere Pro** (multi-track precision editing & trimming), **DaVinci Resolve Studio** (ACES 2.0 color science, 3D LUTs & real-time scopes), and **Fusion / Fairlight** (AI node effects & 192 kHz 32-bit float audio).
+7. **Team Hub & Subscriptions**: 50-seat team workspace with granular RBAC permissions, version rollback snapshots, encrypted asset vaults, and localized Indian subscriptions (Rs. 999/mo Individual Pro & Rs. 99,999/mo Corporate Enterprise).
+8. **Mobile Packaging & Security**: Offline Android APK & AAB bundle generation with strict security policies protecting developer credentials.
 
 ---
 

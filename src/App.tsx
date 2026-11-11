@@ -19,6 +19,7 @@ import { HoloSpatialCanvasTab } from './components/HoloSpatialCanvasTab';
 import { QuantumEngineHubTab } from './components/QuantumEngineHubTab';
 import { MultiAgentDirectorTab } from './components/MultiAgentDirectorTab';
 import { Epoch2060DiagnosticTab } from './components/Epoch2060DiagnosticTab';
+import { HardwareArchitectureModal } from './components/HardwareArchitectureModal';
 import { MEME_TEMPLATES } from './data/memeTemplates';
 import { UserSubscription } from './types/subscription';
 import {
@@ -78,6 +79,7 @@ import {
   ShieldCheck,
   MoreVertical,
   X,
+  Server,
 } from 'lucide-react';
 
 export default function App() {
@@ -94,6 +96,7 @@ export default function App() {
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
   const [subscriptionModalCategory, setSubscriptionModalCategory] = useState<'individual' | 'company'>('individual');
   const [legalDocModal, setLegalDocModal] = useState<'terms' | 'privacy' | null>(null);
+  const [isArchModalOpen, setIsArchModalOpen] = useState(false);
 
   // User Subscription State (persisted in localStorage, default Free)
   const [subscription, setSubscription] = useState<UserSubscription>(() => {
@@ -943,9 +946,15 @@ export default function App() {
                 <span className="text-sm sm:text-base font-extrabold tracking-tight text-white whitespace-nowrap">
                   MemeForge 2060
                 </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/80 uppercase">
-                  2060.01.01
-                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsArchModalOpen(true)}
+                  className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/90 hover:bg-cyan-900 text-cyan-300 border border-cyan-700/80 uppercase cursor-pointer flex items-center gap-1 transition-colors"
+                  title="Inspect 06/11/2026 Hardware Architect & Software Architecture Specifications"
+                >
+                  <span>06/11/2026 ARCHITECT</span>
+                  <Server className="w-3 h-3 text-cyan-400" />
+                </button>
               </div>
               <div className="text-[10px] text-slate-400 hidden xl:flex items-center gap-1.5 font-mono">
                 <span>Quantum DiT</span>
@@ -1123,6 +1132,16 @@ export default function App() {
 
         {/* Desktop Zone 3: Quick Action Buttons (Hidden on Mobile) */}
         <div className="hidden lg:flex items-center gap-2 shrink-0">
+          {/* 06/11/2026 Hardware Architect & Software Architecture Specs */}
+          <button
+            onClick={() => setIsArchModalOpen(true)}
+            className="min-h-[38px] px-3 py-1.5 bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 hover:text-cyan-200 rounded-xl border border-cyan-800/80 text-xs font-mono font-semibold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+            title="Inspect 06/11/2026 Hardware Architect & Software Architecture Specs"
+          >
+            <Server className="w-4 h-4 text-cyan-400" />
+            <span>06/11/2026 Architect</span>
+          </button>
+
           {/* PWA Install Button */}
           <PWAInstallButton />
 
@@ -1204,6 +1223,16 @@ export default function App() {
               </button>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+              <button
+                onClick={() => {
+                  setIsArchModalOpen(true);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="col-span-2 p-2.5 rounded-lg bg-cyan-950/60 border border-cyan-700/60 flex items-center justify-center gap-2 text-cyan-300 font-mono font-semibold"
+              >
+                <Server className="w-4 h-4 text-cyan-400" />
+                <span>06/11/2026 Hardware &amp; Software Specs</span>
+              </button>
               <button
                 onClick={() => {
                   setIsAndroidModalOpen(true);
@@ -1620,6 +1649,12 @@ export default function App() {
         isOpen={legalDocModal !== null}
         onClose={() => setLegalDocModal(null)}
         initialDoc={legalDocModal || 'terms'}
+      />
+
+      {/* 06/11/2026 Hardware Architect & Software Architecture Modal */}
+      <HardwareArchitectureModal
+        isOpen={isArchModalOpen}
+        onClose={() => setIsArchModalOpen(false)}
       />
 
       {/* Footer info bar - 2060 Clean Unboxed Typography */}
